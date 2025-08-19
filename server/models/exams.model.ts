@@ -1,5 +1,5 @@
-import pool from '../database'
 import ExamsTypes from '../types/exams.types'
+import pool from '../database/index'
 
 class ExamsModel {
 	// create
@@ -7,7 +7,7 @@ class ExamsModel {
 		try {
 			const connect = await pool.connect()
 			const sql =
-				'INSERT INTO exams (title, time, lesson_id) VALUES($1, $2, $3) returning *'
+				'INSERT INTO exams (title, time, lesson_id) VALUES ($1, $2, $3) returning *'
 			const result = await connect.query(sql, [u.title, u.time, u.lesson_id])
 			connect.release()
 			return result.rows[0]
@@ -51,6 +51,7 @@ class ExamsModel {
 			throw new Error(`${err}`)
 		}
 	}
+
 	// update
 	async update(u: ExamsTypes): Promise<ExamsTypes> {
 		try {

@@ -4,7 +4,7 @@ CREATE TABLE questions (
     date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     exams_id uuid NOT NULL REFERENCES exams (id) ON DELETE CASCADE,
     question TEXT NOT NULL,
-    answers TEXT NOT NULL,
+    answers TEXT [] NOT NULL,
     correct_answer TEXT NOT NULL,
     time TEXT NOT NULL,
     notes TEXT NOT NULL,

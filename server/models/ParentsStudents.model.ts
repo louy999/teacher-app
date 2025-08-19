@@ -7,8 +7,12 @@ class ParentsStudentsModel {
 		try {
 			const connect = await pool.connect()
 			const sql =
-				'INSERT INTO parents_students (student_id, parent_id) VALUES($1, $2) returning *'
-			const result = await connect.query(sql, [u.student_id, u.parent_id])
+				'INSERT INTO parents_students (student_id, parent_id, teacher_id) VALUES($1, $2, $3) returning *'
+			const result = await connect.query(sql, [
+				u.student_id,
+				u.parent_id,
+				u.teacher_id,
+			])
 			connect.release()
 			return result.rows[0]
 		} catch (error) {
@@ -57,6 +61,48 @@ class ParentsStudentsModel {
 			const connect = await pool.connect()
 			const sql = 'SELECT * from parents_students WHERE parent_id=($1)'
 			const result = await connect.query(sql, [parent_id])
+			connect.release()
+			return result.rows
+		} catch (err) {
+			throw new Error(`${err}`)
+		}
+	}
+	async getByParentIdTeacherId(
+		parent_id: string,
+		teacher_id: String
+	): Promise<ParentsStudentsTypes[]> {
+		try {
+			const connect = await pool.connect()
+			const sql =
+				'SELECT * from parents_students WHERE parent_id=($1) AND teacher_id=($2)'
+			const result = await connect.query(sql, [parent_id, teacher_id])
+			connect.release()
+			return result.rows
+		} catch (err) {
+			throw new Error(`${err}`)
+		}
+	}
+	async getByParentIdTeacherIdStudentId(
+		parent_id: string,
+		teacher_id: String,
+		student_id: String
+	): Promise<ParentsStudentsTypes[]> {
+		try {
+			const connect = await pool.connect()
+			const sql =
+				'SELECT * from parents_students WHERE parent_id=($1) AND teacher_id=($2) AND student_id=($3)'
+			const result = await connect.query(sql, [parent_id, teacher_id, student_id])
+			connect.release()
+			return result.rows
+		} catch (err) {
+			throw new Error(`${err}`)
+		}
+	}
+	async getByTeacherId(teacher_id: String): Promise<ParentsStudentsTypes[]> {
+		try {
+			const connect = await pool.connect()
+			const sql = 'SELECT * from parents_students WHERE  teacher_id=($1)'
+			const result = await connect.query(sql, [teacher_id])
 			connect.release()
 			return result.rows
 		} catch (err) {

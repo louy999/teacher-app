@@ -43,6 +43,18 @@ class ViewsModel {
 			throw new Error(`${err}`)
 		}
 	}
+	//get by student id
+	async getByStudentId(studentId: string): Promise<ViewsTypes[]> {
+		try {
+			const connect = await pool.connect()
+			const sql = 'SELECT * from views WHERE student_id=($1)'
+			const result = await connect.query(sql, [studentId])
+			connect.release()
+			return result.rows
+		} catch (err) {
+			throw new Error(`${err}`)
+		}
+	}
 	// get by lesson id and student id
 	async getByLessonIdAndStudentId(
 		lesson_id: string,
@@ -53,7 +65,12 @@ class ViewsModel {
 			const sql = 'SELECT * from views WHERE lesson_id=($1) AND student_id=($2)'
 			const result = await connect.query(sql, [lesson_id, student_id])
 			connect.release()
-			return result.rows[0]
+			const empty: any = []
+			if (result.rows.length) {
+				return result.rows[0]
+			} else {
+				return empty
+			}
 		} catch (err) {
 			throw new Error(`${err}`)
 		}
@@ -63,7 +80,7 @@ class ViewsModel {
 		try {
 			const connect = await pool.connect()
 			const sql = 'UPDATE views SET progress=($1) WHERE id=($2) returning *'
-			const result = await connect.query(sql, [u.progress])
+			const result = await connect.query(sql, [u.progress, u.id])
 			connect.release()
 			return result.rows[0]
 		} catch (err) {

@@ -2,7 +2,7 @@ type CommentsTypes = {
 	id?: string
 	date?: string
 	text: string
-	student_id: string
+	user_id: string
 	lesson_id: string
 	file_url: string
 	file_type: string

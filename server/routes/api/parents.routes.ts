@@ -35,39 +35,11 @@ routes.get('/', async (req: Request, res: Response, next) => {
 routes.get('/:id', async (req: Request, res: Response, next) => {
 	try {
 		const parent = await parentsModel.getOne(req.params.id as unknown as string)
+		const token = jwt.sign({parent}, config.tokenSecret as unknown as string)
+
 		res.json({
 			status: 'success',
-			data: parent,
-			message: 'parent retrieved successfully',
-		})
-	} catch (err) {
-		next(err)
-	}
-})
-//get specific by phone
-routes.get('/phone/:phone', async (req: Request, res: Response, next) => {
-	try {
-		const parent = await parentsModel.getByPhone(
-			req.params.phone as unknown as string
-		)
-		res.json({
-			status: 'success',
-			data: parent,
-			message: 'parent retrieved successfully',
-		})
-	} catch (err) {
-		next(err)
-	}
-})
-//get specific by name
-routes.get('/name/:name', async (req: Request, res: Response, next) => {
-	try {
-		const parent = await parentsModel.getByName(
-			req.params.name as unknown as string
-		)
-		res.json({
-			status: 'success',
-			data: parent,
+			data: {...parent, token},
 			message: 'parent retrieved successfully',
 		})
 	} catch (err) {
@@ -100,20 +72,20 @@ routes.delete('/:id', async (req: Request, res: Response, next) => {
 		next(err)
 	}
 })
-//login
-routes.post('/auth', async (req: Request, res: Response, next) => {
-	try {
-		const {phone, password} = req.body
-		const parent = await parentsModel.auth(phone, password)
-		const token = jwt.sign({parent}, config.tokenSecret as unknown as string)
-		res.json({
-			status: 'success',
-			data: {...parent, token},
-			message: 'parent auth successfully',
-		})
-	} catch (err) {
-		next(err)
-	}
-})
+// //login
+// routes.post('/auth', async (req: Request, res: Response, next) => {
+// 	try {
+// 		const {phone, password} = req.body
+// 		const parent = await parentsModel.auth(phone, password)
+// 		const token = jwt.sign({parent}, config.tokenSecret as unknown as string)
+// 		res.json({
+// 			status: 'success',
+// 			data: {...parent, token},
+// 			message: 'parent auth successfully',
+// 		})
+// 	} catch (err) {
+// 		next(err)
+// 	}
+// })
 
 export default routes

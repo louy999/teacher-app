@@ -1,12 +1,13 @@
 type TeachersTypes = {
 	id?: string
 	date?: string
-	name: string
-	password: string
-	subject: number
-	phone?: string | number
+	phone?: string
+	subject: string
+	grade_levels: string
+	paid?: string
+	price?: string
+	expire_date?: string
 	profile_pic?: string
-	access_level?: string
 }
 
 export default TeachersTypes

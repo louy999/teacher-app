@@ -42,6 +42,21 @@ routes.get('/:id', async (req: Request, res: Response, next) => {
 		next(err)
 	}
 })
+//get specific
+routes.get('/student/:studentId', async (req: Request, res: Response, next) => {
+	try {
+		const view = await viewsModel.getByStudentId(
+			req.params.studentId as unknown as string
+		)
+		res.json({
+			status: 'success',
+			data: view,
+			message: 'view retrieved successfully',
+		})
+	} catch (err) {
+		next(err)
+	}
+})
 //get specific by lesson id and student id
 routes.get(
 	'/lesson/:lesson/student/:student',

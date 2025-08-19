@@ -19,7 +19,7 @@ class ChapterModel {
 	async getAll(): Promise<ChapterTypes[]> {
 		try {
 			const connect = await pool.connect()
-			const sql = 'SELECT * from teachers'
+			const sql = 'SELECT * from chapters'
 			const result = await connect.query(sql)
 			connect.release()
 			return result.rows
@@ -31,7 +31,7 @@ class ChapterModel {
 	async getOne(id: string): Promise<ChapterTypes> {
 		try {
 			const connect = await pool.connect()
-			const sql = 'SELECT * from chapter WHERE id=($1)'
+			const sql = 'SELECT * from chapters WHERE id=($1)'
 			const result = await connect.query(sql, [id])
 			connect.release()
 			return result.rows[0]
@@ -43,7 +43,7 @@ class ChapterModel {
 	async getByName(name: string): Promise<ChapterTypes[]> {
 		try {
 			const connect = await pool.connect()
-			const sql = 'SELECT * from chapter WHERE name=($1)'
+			const sql = 'SELECT * from chapters WHERE name=($1)'
 			const result = await connect.query(sql, [name])
 			connect.release()
 			return result.rows
@@ -55,7 +55,7 @@ class ChapterModel {
 	async getByStage(stage: string): Promise<ChapterTypes[]> {
 		try {
 			const connect = await pool.connect()
-			const sql = 'SELECT * from chapter WHERE stage=($1)'
+			const sql = 'SELECT * from chapters WHERE stage=($1)'
 			const result = await connect.query(sql, [stage])
 			connect.release()
 			return result.rows
@@ -67,8 +67,22 @@ class ChapterModel {
 	async getByTeacherId(teacher_id: string): Promise<ChapterTypes[]> {
 		try {
 			const connect = await pool.connect()
-			const sql = 'SELECT * from chapter WHERE teacher_id=($1)'
+			const sql = 'SELECT * from chapters WHERE teacher_id=($1)'
 			const result = await connect.query(sql, [teacher_id])
+			connect.release()
+			return result.rows
+		} catch (err) {
+			throw new Error(`${err}`)
+		}
+	}
+	async getByTeacherIdAndStage(
+		teacher_id: string,
+		stage: string
+	): Promise<ChapterTypes[]> {
+		try {
+			const connect = await pool.connect()
+			const sql = 'SELECT * from chapters WHERE teacher_id=($1) AND stage=($2)'
+			const result = await connect.query(sql, [teacher_id, stage])
 			connect.release()
 			return result.rows
 		} catch (err) {
@@ -79,9 +93,8 @@ class ChapterModel {
 	async update(u: ChapterTypes): Promise<ChapterTypes> {
 		try {
 			const connect = await pool.connect()
-			const sql =
-				'UPDATE chapter SET name=($1), stage=($2) WHERE id=($3) returning *'
-			const result = await connect.query(sql, [u.name, u.stage, u.id])
+			const sql = 'UPDATE chapters SET name=($1) WHERE id=($2) returning *'
+			const result = await connect.query(sql, [u.name, u.id])
 			connect.release()
 			return result.rows[0]
 		} catch (err) {
@@ -92,7 +105,7 @@ class ChapterModel {
 	async delete(id: string): Promise<ChapterTypes> {
 		try {
 			const connect = await pool.connect()
-			const sql = 'DELETE from chapter WHERE id=($1) returning *'
+			const sql = 'DELETE from chapters WHERE id=($1) returning *'
 			const result = await connect.query(sql, [id])
 			connect.release()
 			return result.rows[0]

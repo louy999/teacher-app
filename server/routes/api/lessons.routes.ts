@@ -57,6 +57,20 @@ routes.get('/title/:title', async (req: Request, res: Response, next) => {
 		next(err)
 	}
 })
+routes.get('/chapter/:chapter', async (req: Request, res: Response, next) => {
+	try {
+		const lesson = await lessonsModel.getByChapterId(
+			req.params.chapter as unknown as string
+		)
+		res.json({
+			status: 'success',
+			data: lesson,
+			message: 'lesson retrieved successfully',
+		})
+	} catch (err) {
+		next(err)
+	}
+})
 //update
 routes.patch('/', async (req: Request, res: Response, next) => {
 	try {

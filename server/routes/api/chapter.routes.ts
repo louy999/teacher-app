@@ -87,6 +87,24 @@ routes.get('/teacher/:teacher', async (req: Request, res: Response, next) => {
 		next(err)
 	}
 })
+routes.get(
+	'/teacher/:teacher/stage/:stage',
+	async (req: Request, res: Response, next) => {
+		try {
+			const chapter = await chapterModel.getByTeacherIdAndStage(
+				req.params.teacher as unknown as string,
+				req.params.stage as unknown as string
+			)
+			res.json({
+				status: 'success',
+				data: chapter,
+				message: 'chapter retrieved successfully',
+			})
+		} catch (err) {
+			next(err)
+		}
+	}
+)
 //update
 routes.patch('/', async (req: Request, res: Response, next) => {
 	try {

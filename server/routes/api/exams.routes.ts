@@ -58,6 +58,7 @@ routes.get('/lesson/:lesson', async (req: Request, res: Response, next) => {
 		next(err)
 	}
 })
+
 //update
 routes.patch('/', async (req: Request, res: Response, next) => {
 	try {

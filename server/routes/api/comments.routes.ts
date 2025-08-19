@@ -72,6 +72,24 @@ routes.get('/lesson/:lesson', async (req: Request, res: Response, next) => {
 		next(err)
 	}
 })
+routes.get(
+	'/lesson/:lesson/student/:student',
+	async (req: Request, res: Response, next) => {
+		try {
+			const comment = await commentsModel.getByLessonIdAndStudent(
+				req.params.lesson as unknown as string,
+				req.params.student as unknown as string
+			)
+			res.json({
+				status: 'success',
+				data: comment,
+				message: 'comment retrieved successfully',
+			})
+		} catch (err) {
+			next(err)
+		}
+	}
+)
 //update
 routes.patch('/', async (req: Request, res: Response, next) => {
 	try {

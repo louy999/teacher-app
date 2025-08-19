@@ -38,24 +38,19 @@ app.get('/healthz', (_req: Request, res: Response) => {
 	res.send({status: 'ok✌️'})
 })
 
-app.post('/upload', upload.array('image', 10), (req: any, res) => {
-	const fileNames = (req.files as Express.Multer.File[]).map(
-		(file) => file.filename
-	)
-	res.send(fileNames)
+app.post('/upload/image', upload.single('image'), (req: any, res) => {
+	const fileName = req.file?.filename
+	res.send(fileName)
 })
 app.post(
 	'/upload/file',
-	uploadFile.array('file', 10),
+	uploadFile.single('file'),
 	(req: any, res: Response) => {
-		const fileNames = (req.files as Express.Multer.File[]).map(
-			(file) => file.filename
-		)
-		res.send(fileNames)
+		const fileName = req.file?.filename
+		res.send(fileName)
 	}
 )
-
-app.use('/uploads', express.static('uploads'))
+app.use('/upload', express.static('uploads'))
 
 app.get('/image/:filename', (req, res) => {
 	const {filename} = req.params
@@ -77,14 +72,18 @@ app.post('/ver', (req: Request, res: Response) => {
 const server = http.createServer(app)
 const io = new Server(server, {
 	cors: {
-		origin: ['http://localhost:3000', 'http://localhost:3001'],
+		origin: ['http://localhost:3000'],
 		methods: ['GET', 'POST'],
+		credentials: true,
 	},
 })
 io.on('connection', (socket) => {
 	console.log('🔌 Connected socket id:', socket.id)
-	socket.on('add_request', () => {
+	socket.on('add_comment', () => {
 		io.emit('all_com')
+	})
+	socket.on('add_user', () => {
+		io.emit('all_user')
 	})
 	socket.on('disconnect', () => {
 		console.log('🔌 Disconnected socket id:', socket.id)

@@ -3,5 +3,6 @@ type ParentsStudentsTypes = {
 	date?: string
 	student_id: string
 	parent_id: string
+	teacher_id: string
 }
 export default ParentsStudentsTypes

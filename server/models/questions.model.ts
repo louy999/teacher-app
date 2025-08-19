@@ -49,11 +49,11 @@ class QuestionsModel {
 		}
 	}
 	// get by exam_id
-	async getByExamId(exam_id: string): Promise<QuestionsTypes[]> {
+	async getByExamId(exams_id: string): Promise<QuestionsTypes[]> {
 		try {
 			const connect = await pool.connect()
-			const sql = 'SELECT * from questions WHERE exam_id=($1)'
-			const result = await connect.query(sql, [exam_id])
+			const sql = 'SELECT * from questions WHERE exams_id=($1)'
+			const result = await connect.query(sql, [exams_id])
 			connect.release()
 			return result.rows
 		} catch (err) {

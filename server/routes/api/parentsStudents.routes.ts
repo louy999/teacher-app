@@ -74,6 +74,59 @@ routes.get('/parent/:parent', async (req: Request, res: Response, next) => {
 		next(err)
 	}
 })
+//get specific by teacher id
+routes.get('/teacher/:teacher', async (req: Request, res: Response, next) => {
+	try {
+		const parentStudent = await parentsStudentsModel.getByTeacherId(
+			req.params.teacher as unknown as string
+		)
+		res.json({
+			status: 'success',
+			data: parentStudent,
+			message: 'parentStudent retrieved successfully',
+		})
+	} catch (err) {
+		next(err)
+	}
+})
+routes.get(
+	'/parent/:parent/teacher/:teacher',
+	async (req: Request, res: Response, next) => {
+		try {
+			const parentStudent = await parentsStudentsModel.getByParentIdTeacherId(
+				req.params.parent as unknown as string,
+				req.params.teacher as unknown as string
+			)
+			res.json({
+				status: 'success',
+				data: parentStudent,
+				message: 'parentStudent retrieved successfully',
+			})
+		} catch (err) {
+			next(err)
+		}
+	}
+)
+routes.get(
+	'/parent/:parent/teacher/:teacher/student/:student',
+	async (req: Request, res: Response, next) => {
+		try {
+			const parentStudent =
+				await parentsStudentsModel.getByParentIdTeacherIdStudentId(
+					req.params.parent as unknown as string,
+					req.params.teacher as unknown as string,
+					req.params.student as unknown as string
+				)
+			res.json({
+				status: 'success',
+				data: parentStudent,
+				message: 'parentStudent retrieved successfully',
+			})
+		} catch (err) {
+			next(err)
+		}
+	}
+)
 //update
 routes.patch('/', async (req: Request, res: Response, next) => {
 	try {

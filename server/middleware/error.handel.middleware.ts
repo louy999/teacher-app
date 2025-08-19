@@ -8,7 +8,7 @@ const errHandleMiddleware = (
 	next: NextFunction
 ) => {
 	const status = error.status || 500
-	const message = error.message || `something error `
+	const message = error.message || `something error`
 	res.status(status).json({
 		status,
 		message,

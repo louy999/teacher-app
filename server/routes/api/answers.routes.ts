@@ -76,6 +76,24 @@ routes.get(
 		}
 	}
 )
+routes.get(
+	'/student/:student/exam/:exam',
+	async (req: Request, res: Response, next) => {
+		try {
+			const answer = await answersModel.getByStudentIdAndExamId(
+				req.params.student as unknown as string,
+				req.params.exam as unknown as string
+			)
+			res.json({
+				status: 'success',
+				data: answer,
+				message: 'answer retrieved successfully 6',
+			})
+		} catch (err) {
+			next(err)
+		}
+	}
+)
 //update
 routes.patch('/', async (req: Request, res: Response, next) => {
 	try {

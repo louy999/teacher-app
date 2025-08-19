@@ -37,24 +37,11 @@ routes.get('/:id', async (req: Request, res: Response, next) => {
 		const assistant = await assistantsModel.getOne(
 			req.params.id as unknown as string
 		)
+		const token = jwt.sign({assistant}, config.tokenSecret as unknown as string)
+
 		res.json({
 			status: 'success',
-			data: assistant,
-			message: 'assistant retrieved successfully',
-		})
-	} catch (err) {
-		next(err)
-	}
-})
-//get specific by phone
-routes.get('/phone/:phone', async (req: Request, res: Response, next) => {
-	try {
-		const assistant = await assistantsModel.getByPhone(
-			req.params.phone as unknown as string
-		)
-		res.json({
-			status: 'success',
-			data: assistant,
+			data: {...assistant, token},
 			message: 'assistant retrieved successfully',
 		})
 	} catch (err) {
@@ -66,20 +53,6 @@ routes.get('/teacher/:teacher', async (req: Request, res: Response, next) => {
 	try {
 		const assistant = await assistantsModel.getByTeacherId(
 			req.params.teacher as unknown as string
-		)
-		res.json({
-			status: 'success',
-			data: assistant,
-			message: 'assistant retrieved successfully',
-		})
-	} catch (err) {
-		next(err)
-	}
-})
-routes.get('/name/:name', async (req: Request, res: Response, next) => {
-	try {
-		const assistant = await assistantsModel.getByName(
-			req.params.name as unknown as string
 		)
 		res.json({
 			status: 'success',
@@ -119,19 +92,19 @@ routes.delete('/:id', async (req: Request, res: Response, next) => {
 	}
 })
 //login
-routes.post('/auth', async (req: Request, res: Response, next) => {
-	try {
-		const {phone, password} = req.body
-		const assistant = await assistantsModel.auth(phone, password)
-		const token = jwt.sign({assistant}, config.tokenSecret as unknown as string)
-		res.json({
-			status: 'success',
-			data: {...assistant, token},
-			message: 'assistant auth successfully',
-		})
-	} catch (err) {
-		next(err)
-	}
-})
+// routes.post('/auth', async (req: Request, res: Response, next) => {
+// 	try {
+// 		const {phone, password} = req.body
+// 		const assistant = await assistantsModel.auth(phone, password)
+// 		const token = jwt.sign({assistant}, config.tokenSecret as unknown as string)
+// 		res.json({
+// 			status: 'success',
+// 			data: {...assistant, token},
+// 			message: 'assistant auth successfully',
+// 		})
+// 	} catch (err) {
+// 		next(err)
+// 	}
+// })
 
 export default routes

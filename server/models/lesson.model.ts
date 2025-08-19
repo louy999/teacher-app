@@ -59,6 +59,17 @@ class LessonsModel {
 			throw new Error(`${err}`)
 		}
 	}
+	async getByChapterId(chapterId: string): Promise<LessonsTypes[]> {
+		try {
+			const connect = await pool.connect()
+			const sql = 'SELECT * from lessons WHERE chapter_id=($1)'
+			const result = await connect.query(sql, [chapterId])
+			connect.release()
+			return result.rows
+		} catch (err) {
+			throw new Error(`${err}`)
+		}
+	}
 	// update
 	async update(u: LessonsTypes): Promise<LessonsTypes> {
 		try {

@@ -57,6 +57,21 @@ routes.get('/lesson/:lesson', async (req: Request, res: Response, next) => {
 		next(err)
 	}
 })
+//get specific by comment
+routes.get('/comment/:comment', async (req: Request, res: Response, next) => {
+	try {
+		const replay = await replayModel.getByCommentId(
+			req.params.comment as unknown as string
+		)
+		res.json({
+			status: 'success',
+			data: replay,
+			message: 'replay retrieved successfully',
+		})
+	} catch (err) {
+		next(err)
+	}
+})
 //update
 routes.patch('/', async (req: Request, res: Response, next) => {
 	try {

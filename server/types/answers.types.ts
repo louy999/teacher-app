@@ -6,5 +6,6 @@ type AnswersTypes = {
 	answer: string
 	is_correct?: string | boolean
 	marks: string
+	exams_id: string
 }
 export default AnswersTypes

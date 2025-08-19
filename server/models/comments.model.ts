@@ -7,10 +7,10 @@ class CommentsModel {
 		try {
 			const connect = await pool.connect()
 			const sql =
-				'INSERT INTO comments (text, student_id, lesson_id, file_url, file_type, shown) VALUES($1, $2, $3, $4, $5, $6) returning *'
+				'INSERT INTO comments (text, user_id, lesson_id, file_url, file_type, shown) VALUES($1, $2, $3, $4, $5, $6) returning *'
 			const result = await connect.query(sql, [
 				u.text,
-				u.student_id,
+				u.user_id,
 				u.lesson_id,
 				u.file_url,
 				u.file_type,
@@ -46,12 +46,12 @@ class CommentsModel {
 			throw new Error(`${err}`)
 		}
 	}
-	// get by student_id
-	async getByStudentId(student_id: string): Promise<CommentsTypes[]> {
+	// get by user_id
+	async getByStudentId(user_id: string): Promise<CommentsTypes[]> {
 		try {
 			const connect = await pool.connect()
-			const sql = 'SELECT * from comments WHERE student_id=($1)'
-			const result = await connect.query(sql, [student_id])
+			const sql = 'SELECT * from comments WHERE user_id=($1)'
+			const result = await connect.query(sql, [user_id])
 			connect.release()
 			return result.rows
 		} catch (err) {
@@ -70,6 +70,21 @@ class CommentsModel {
 			throw new Error(`${err}`)
 		}
 	}
+	async getByLessonIdAndStudent(
+		lesson_id: string,
+		user_id: string
+	): Promise<CommentsTypes[]> {
+		try {
+			const connect = await pool.connect()
+			const sql = 'SELECT * from comments WHERE lesson_id=($1) AND user_id=($2)'
+			const result = await connect.query(sql, [lesson_id, user_id])
+			connect.release()
+			return result.rows
+		} catch (err) {
+			throw new Error(`${err}`)
+		}
+	}
+
 	// update
 	async update(u: CommentsTypes): Promise<CommentsTypes> {
 		try {

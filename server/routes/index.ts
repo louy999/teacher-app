@@ -15,12 +15,16 @@ import commentsRoutes from './api/comments.routes'
 import ReplyRoutes from './api/replay.routes'
 import ViewsRoutes from './api/views.routes'
 import SubscribeRoutes from './api/subscribe.routes'
+import usersRoutes from './api/users.routes'
+import transTeacher from './api/transTeacher.routes'
+import MultipleRoutes from './api/multiple.routes'
 
 const routes = Router()
+routes.use('/users', usersRoutes)
 routes.use('/teachers', teacherRoutes)
 routes.use('/students', studentRoutes)
 routes.use('/st', studentsTeacherRoutes)
-routes.use('/parent', parentsRoutes)
+routes.use('/parents', parentsRoutes)
 routes.use('/ps', parentsStudentsRoutes)
 routes.use('/assistants', assistantsRoutes)
 routes.use('/chapters', chapterRoutes)
@@ -33,5 +37,7 @@ routes.use('/comments', commentsRoutes)
 routes.use('/replay', ReplyRoutes)
 routes.use('/views', ViewsRoutes)
 routes.use('/subscribe', SubscribeRoutes)
+routes.use('/trans', transTeacher)
+routes.use('/m', MultipleRoutes)
 
 export default routes

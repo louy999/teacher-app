@@ -4,6 +4,7 @@ CREATE TABLE answers (
     date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     student_id uuid NOT NULL REFERENCES students (id) ON DELETE CASCADE,
     question_id uuid NOT NULL REFERENCES questions (id) ON DELETE CASCADE,
+    exams_id uuid NOT NULL REFERENCES exams (id) ON DELETE CASCADE,
     answer TEXT NOT NULL,
     is_correct BOOLEAN DEFAULT FALSE,
     marks TEXT NOT NULL

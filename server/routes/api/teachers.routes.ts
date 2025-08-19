@@ -35,24 +35,11 @@ routes.get('/', async (req: Request, res: Response, next) => {
 routes.get('/:id', async (req: Request, res: Response, next) => {
 	try {
 		const teacher = await teacherModel.getOne(req.params.id as unknown as string)
+		const token = jwt.sign({teacher}, config.tokenSecret as unknown as string)
+
 		res.json({
 			status: 'success',
-			data: teacher,
-			message: 'teacher retrieved successfully',
-		})
-	} catch (err) {
-		next(err)
-	}
-})
-//get specific by name
-routes.get('/name/:name', async (req: Request, res: Response, next) => {
-	try {
-		const teacher = await teacherModel.getOneFromName(
-			req.params.name as unknown as string
-		)
-		res.json({
-			status: 'success',
-			data: teacher,
+			data: {...teacher, token},
 			message: 'teacher retrieved successfully',
 		})
 	} catch (err) {
@@ -86,19 +73,19 @@ routes.delete('/:id', async (req: Request, res: Response, next) => {
 	}
 })
 //login
-routes.post('/auth', async (req: Request, res: Response, next) => {
-	try {
-		const {phone, password} = req.body
-		const teacher = await teacherModel.auth(phone, password)
-		const token = jwt.sign({teacher}, config.tokenSecret as unknown as string)
-		res.json({
-			status: 'success',
-			data: {...teacher, token},
-			message: 'teacher auth successfully',
-		})
-	} catch (err) {
-		next(err)
-	}
-})
+// routes.post('/auth', async (req: Request, res: Response, next) => {
+// 	try {
+// 		const {phone, password} = req.body
+// 		const teacher = await teacherModel.auth(phone, password)
+// 		const token = jwt.sign({teacher}, config.tokenSecret as unknown as string)
+// 		res.json({
+// 			status: 'success',
+// 			data: {...teacher, token},
+// 			message: 'teacher auth successfully',
+// 		})
+// 	} catch (err) {
+// 		next(err)
+// 	}
+// })
 
 export default routes
