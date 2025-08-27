@@ -75,6 +75,24 @@ routes.get('/teacher/:teacher', async (req: Request, res: Response, next) => {
 		next(err)
 	}
 })
+routes.get(
+	'/teacher/:teacher/student/:student',
+	async (req: Request, res: Response, next) => {
+		try {
+			const student = await studentsTeacherModel.getByTeacherIdStudentId(
+				req.params.teacher as unknown as string,
+				req.params.student as unknown as string
+			)
+			res.json({
+				status: 'success',
+				data: student,
+				message: 'student retrieved successfully',
+			})
+		} catch (err) {
+			next(err)
+		}
+	}
+)
 //update
 routes.patch('/', async (req: Request, res: Response, next) => {
 	try {

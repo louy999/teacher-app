@@ -60,6 +60,21 @@ class AssistantsModel {
 			throw new Error(`${err}`)
 		}
 	}
+	// get by teacher id and assistant id
+	async getByTeacherIdAndAssistant(
+		teacher_id: string,
+		id: string
+	): Promise<AssistantsTypes> {
+		try {
+			const connect = await pool.connect()
+			const sql = 'SELECT * from assistants WHERE teacher_id=($1) AND id=($2)'
+			const result = await connect.query(sql, [teacher_id, id])
+			connect.release()
+			return result.rows[0]
+		} catch (err) {
+			throw new Error(`${err}`)
+		}
+	}
 	// update
 	async update(u: AssistantsTypes): Promise<AssistantsTypes> {
 		try {

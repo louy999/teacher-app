@@ -6,11 +6,16 @@ import validateTokenMiddleware from '../../middleware/authentication.middleware'
 import TeachersModel from '../../models/teachers.model'
 import StudentsModel from '../../models/students.model'
 import AssistantsModel from '../../models/assistants.model'
+import ParentsModel from '../../models/parents.model'
+import StudentsTeacherModel from '../../models/studentsTeachers.model'
+import ParentsStudentsModel from '../../models/ParentsStudents.model'
 const teachersModel = new TeachersModel()
 const studentsModel = new StudentsModel()
 const assistantsModel = new AssistantsModel()
-
+const parentsModel = new ParentsModel()
 const usersModel = new UsersModel()
+const studentsTeacherModel = new StudentsTeacherModel()
+const parentsStudentsModel = new ParentsStudentsModel()
 
 const routes = Router()
 //create
@@ -45,7 +50,9 @@ routes.get(
 	validateTokenMiddleware,
 	async (req: Request, res: Response, next) => {
 		try {
-			const user = await usersModel.getOne(req.params.id as unknown as string)
+			const user = await usersModel.getOne(
+				req.params.id as unknown as unknown as string
+			)
 			res.json({
 				status: 'success',
 				data: user,
@@ -60,7 +67,7 @@ routes.get(
 routes.get('/name/:name', async (req: Request, res: Response, next) => {
 	try {
 		const user = await usersModel.getOneFromName(
-			req.params.name as unknown as string
+			req.params.name as unknown as unknown as string
 		)
 		res.json({
 			status: 'success',
@@ -87,7 +94,9 @@ routes.patch('/', async (req: Request, res: Response, next) => {
 //delete
 routes.delete('/:id', async (req: Request, res: Response, next) => {
 	try {
-		const user = await usersModel.delete(req.params.id as unknown as string)
+		const user = await usersModel.delete(
+			req.params.id as unknown as unknown as string
+		)
 		res.json({
 			status: 'success',
 			data: user,
@@ -100,27 +109,67 @@ routes.delete('/:id', async (req: Request, res: Response, next) => {
 //login
 routes.post('/auth', async (req: Request, res: Response, next) => {
 	try {
-		const {phone, password} = req.body
+		const {phone, password, teacher_id} = req.body
 
 		const user = await usersModel.auth(phone, password)
 
-		let roleData = null
-
-		if (user?.role === 'teachers') {
-			roleData = await teachersModel.getOne(user.id as unknown as string)
-		} else if (user?.role === 'students') {
-			roleData = await studentsModel.getOne(user.id as unknown as string)
-		} else if (user?.role === 'assistants') {
-			roleData = await assistantsModel.getOne(user.id as unknown as string)
+		if (!user) {
+			return next('Invalid phone or password')
 		}
 
-		const tokenUser = jwt.sign({user}, config.tokenSecret as string)
-		const tokenData = jwt.sign({roleData}, config.tokenSecret as string)
+		let roleData = null
+
+		if (user.role === 'teachers') {
+			if (teacher_id === user.id) {
+				roleData = await teachersModel.getOne(
+					user.id as unknown as unknown as string
+				)
+			} else {
+				throw new Error('this number not subscribe with teacher')
+			}
+		} else if (user.role === 'students') {
+			const student = await studentsTeacherModel.getByTeacherIdStudentId(
+				teacher_id as unknown as string,
+				user.id as unknown as string
+			)
+
+			if (student.length) {
+				roleData = await studentsModel.getOne(user.id as unknown as string)
+			} else {
+				throw new Error('this number not subscribe with teacher')
+			}
+		} else if (user.role === 'assistants') {
+			const assistant = await assistantsModel.getByTeacherIdAndAssistant(
+				teacher_id as unknown as string,
+				user.id as unknown as string
+			)
+			if (assistant) {
+				roleData = await assistantsModel.getOne(user.id as unknown as string)
+			} else {
+				throw new Error('this number not subscribe with teacher')
+			}
+		} else if (user.role === 'parents') {
+			const parentStudent = await parentsStudentsModel.getByParentIdTeacherId(
+				user.id as unknown as string,
+				teacher_id as unknown as string
+			)
+			if (parentStudent.length) {
+				roleData = await parentsModel.getOne(user.id as unknown as string)
+			} else {
+				throw new Error('this number not subscribe with teacher')
+			}
+		}
+
+		const tokenUser = jwt.sign({user}, config.tokenSecret as unknown as string)
+		const tokenData = jwt.sign(
+			{roleData},
+			config.tokenSecret as unknown as string
+		)
 
 		res.json({
 			status: 'success',
-			data: {tokenUser, tokenData},
-			message: 'user auth successfully',
+			data: {tokenUser, tokenData, role: user.role},
+			message: 'user deleted successfully',
 		})
 	} catch (err) {
 		next(err)

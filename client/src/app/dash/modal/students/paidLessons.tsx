@@ -66,11 +66,7 @@ const PaidLessonsDash = ({ roleDet, studentDet }: any) => {
   const addLesson = async () => {
     setLoading(true);
     try {
-      const res = await axios.post(
-        `${process.env.local}/subscribe`,
-        dataAddLesson
-      );
-      console.log(res.data.data);
+      await axios.post(`${process.env.local}/subscribe`, dataAddLesson);
       setErr("add lesson successful ");
       setOpenAddLesson(false);
       setCheckLesson("");

@@ -1,6 +1,6 @@
 "use client";
 import { GoFile } from "react-icons/go";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import Link from "next/link";
 import { MdDeleteForever } from "react-icons/md";
@@ -20,11 +20,7 @@ const EditFilesLesson = ({ lessonId }: { lessonId: string }) => {
   const [fileUrl, setFileUrl] = useState<File | null>(null);
   const [fileType, setFileType] = useState("");
 
-  useEffect(() => {
-    fetchFiles();
-  }, [lessonId]);
-
-  const fetchFiles = async () => {
+  const fetchFiles = useCallback(async () => {
     try {
       const res = await axios.get(
         `${process.env.local}/files/lesson/${lessonId}`
@@ -33,7 +29,10 @@ const EditFilesLesson = ({ lessonId }: { lessonId: string }) => {
     } catch (error) {
       console.error("Error fetching lesson files:", error);
     }
-  };
+  }, [lessonId]);
+  useEffect(() => {
+    fetchFiles();
+  }, [fetchFiles]);
 
   const handleUpload = async () => {
     if (!fileUrl) {

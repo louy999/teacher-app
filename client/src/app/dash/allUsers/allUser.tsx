@@ -8,13 +8,15 @@ import AllAssistant from "./allAssistant";
 import AddStudentModal from "../modal/students/addStudent";
 import AllParent from "./allParent";
 import AddParent from "../modal/parents/addParent";
+import AddAssistantsModal from "../modal/assistants/addAssistants";
 
-const AllUser = ({ studentId }: any) => {
+const AllUser = () => {
   const searchParams = useSearchParams();
   const [openAddStudentModal, setOpenAddStudentModal] = useState(false);
   const [modalAddParent, setModalAddParent] = useState(false);
+  const [modalAddAssist, setModalAddAssist] = useState(false);
+  const [student, setStudent] = useState([]);
   const search = searchParams.get("user");
-
   const [fetchParentId, setFetchParentId] = useState([]);
   const [fetchAssistId, setFetchAssistId] = useState([]);
   useEffect(() => {
@@ -49,6 +51,19 @@ const AllUser = ({ studentId }: any) => {
     };
     getAssistant();
   }, []);
+  useEffect(() => {
+    const getStudent = async () => {
+      try {
+        const res = await axios.get(
+          `${process.env.local}/st/teacher/${process.env.teacherId}`
+        );
+        setStudent(res.data.data);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    getStudent();
+  }, []);
 
   return (
     <>
@@ -77,7 +92,7 @@ const AllUser = ({ studentId }: any) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {studentId.map((student: any, index: any) => (
+                  {student.map((student: any, index: any) => (
                     <AllStudent key={index} studentId={student.student_id} />
                   ))}
                 </tbody>
@@ -93,9 +108,6 @@ const AllUser = ({ studentId }: any) => {
             >
               <span className="truncate">Add Student</span>
             </button>
-            {openAddStudentModal && (
-              <AddStudentModal modal={setOpenAddStudentModal} />
-            )}
           </div>
         </>
       ) : search === "parent" ? (
@@ -136,9 +148,6 @@ const AllUser = ({ studentId }: any) => {
               <span className="truncate">Add Parent</span>
             </button>
           </div>
-          {modalAddParent && (
-            <AddParent setModalAddParent={setModalAddParent} />
-          )}
         </>
       ) : search === "assistant" ? (
         <>
@@ -156,6 +165,9 @@ const AllUser = ({ studentId }: any) => {
                     <th className="table-560aaddd-f3c5-48f5-9f1b-d2656e304ddc-column-240 px-4 py-3 text-left text-[#111518] w-[400px] text-sm font-medium leading-normal">
                       phone
                     </th>
+                    <th className="table-560aaddd-f3c5-48f5-9f1b-d2656e304ddc-column-240 px-4 py-3 text-left text-[#111518] w-[400px] text-sm font-medium leading-normal">
+                      access
+                    </th>
 
                     <th className="table-560aaddd-f3c5-48f5-9f1b-d2656e304ddc-column-480 px-4 py-3 text-left text-[#111518] w-60  text-sm font-medium leading-normal">
                       Actions
@@ -170,11 +182,23 @@ const AllUser = ({ studentId }: any) => {
               </table>
             </div>
           </div>
-          <div className="flex px-4 py-3 justify-start">
+          <div
+            className="flex px-4 py-3 justify-start"
+            onClick={() => setModalAddAssist(true)}
+          >
             <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-[#0b80ee] text-white text-sm font-bold leading-normal tracking-[0.015em]">
-              <span className="truncate">Add Parent</span>
+              <span className="truncate">Add Assistant</span>
             </button>
           </div>
+          {modalAddAssist && (
+            <AddAssistantsModal setModalAddAssist={setModalAddAssist} />
+          )}
+          {modalAddParent && (
+            <AddParent setModalAddParent={setModalAddParent} />
+          )}
+          {openAddStudentModal && (
+            <AddStudentModal modal={setOpenAddStudentModal} />
+          )}
         </>
       ) : (
         ""

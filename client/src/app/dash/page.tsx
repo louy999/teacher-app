@@ -1,21 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
-import { cookies } from "next/headers";
-import { jwtVerify } from "jose";
-import axios from "axios";
 import AllUser from "./allUsers/allUser";
 
 const page = async () => {
   try {
-    const cookieStore = await cookies();
-    const tokenRole = cookieStore.get("dataRoleToken");
-    const decodedToken: any = await jwtVerify(
-      tokenRole.value,
-      new TextEncoder().encode(process.env.TOKEN_SECRET)
-    );
-    const getAllStudentWithTeacher = await axios.get(
-      `${process.env.local}/st/teacher/${decodedToken.payload.user.id}`
-    );
     return (
       <>
         <div className="relative  size-full min-h-screen  bg-white  overflow-x-auto">
@@ -32,7 +19,7 @@ const page = async () => {
                       parents.
                     </p>
                   </div>
-                  <AllUser studentId={getAllStudentWithTeacher.data.data} />
+                  <AllUser />
                 </div>
               </div>
             </div>

@@ -26,10 +26,10 @@ const nextConfig: NextConfig = {
     customKey: "novaraTo",
     local: "http://localhost:5000/api",
     img: "http://localhost:5000",
-    teacherId: "a7eab1b2-7702-4ea8-8835-874375ed850a",
+    teacherId: "e8662fa0-260f-4ae7-bbf0-cf7cb304a76e",
     teacherName: "mr.ahmed",
     TOKEN_SECRET: "tokenPas123",
-    limit: 50,
+    limit: "50",
   },
 };
 

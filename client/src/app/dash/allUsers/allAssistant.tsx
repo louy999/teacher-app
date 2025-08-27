@@ -2,9 +2,11 @@
 import { useEffect, useState } from "react";
 import { getCookie } from "cookies-next/client";
 import axios from "axios";
+import EditAssistantModal from "../modal/assistants/editAssistantModal";
 
 const AllAssistant = ({ assist }: any) => {
   const [dataUser, setDataUser] = useState({});
+  const [openModalEditAssistant, setOpenModalEditAssistant] = useState(false);
   useEffect(() => {
     const getAssist = async () => {
       try {
@@ -29,11 +31,24 @@ const AllAssistant = ({ assist }: any) => {
         <td className="table-560aaddd-f3c5-48f5-9f1b-d2656e304ddc-column-240 h-[72px] px-4 py-2 w-[400px] text-[#60768a] text-sm font-normal leading-normal">
           {dataUser.phone}
         </td>
+        <td className="table-560aaddd-f3c5-48f5-9f1b-d2656e304ddc-column-240 h-[72px] px-4 py-2 w-[400px] text-[#60768a] text-sm font-normal leading-normal">
+          {assist.access?.join(" , ")}
+        </td>
 
-        <td className="cursor-pointer table-560aaddd-f3c5-48f5-9f1b-d2656e304ddc-column-480 h-[72px] px-4 py-2 w-60 text-[#60768a] text-sm font-bold leading-normal tracking-[0.015em]">
+        <td
+          onClick={() => setOpenModalEditAssistant(true)}
+          className="cursor-pointer table-560aaddd-f3c5-48f5-9f1b-d2656e304ddc-column-480 h-[72px] px-4 py-2 w-60 text-[#60768a] text-sm font-bold leading-normal tracking-[0.015em]"
+        >
           Edit
         </td>
       </tr>
+      {openModalEditAssistant && (
+        <EditAssistantModal
+          assist={assist}
+          dataUser={dataUser}
+          setOpenModalEditAssistant={setOpenModalEditAssistant}
+        />
+      )}
     </>
   );
 };

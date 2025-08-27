@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useCallback, useState } from "react";
 import { getCookie } from "cookies-next/client";
 import axios from "axios";
 import EditStudent from "../modal/students/editStudent";
@@ -10,7 +10,7 @@ const AllStudent = ({ studentId }: any) => {
   const [dataUser, setDataUser] = useState({});
   const [dataStudent, setDataStudent] = useState({});
   const [openModal, setOpenModal] = useState(false);
-  const getStudent = async () => {
+  const getStudent = useCallback(async () => {
     try {
       const res: any = await axios.get(
         `${process.env.local}/users/${studentId}`,
@@ -28,17 +28,15 @@ const AllStudent = ({ studentId }: any) => {
     } catch (error) {
       console.log(error);
     }
-  };
-  useEffect(() => {
-    getStudent();
   }, [studentId]);
   useEffect(() => {
-    socket.on("all_user", getStudent);
+    getStudent();
+  }, [getStudent]);
 
-    return () => {
-      socket.off("all_user", getStudent);
-    };
-  }, []);
+  useEffect(() => {
+    socket.on("all_user", getStudent);
+    return () => socket.off("all_user", getStudent);
+  }, [getStudent]);
   return (
     <>
       <tr className={`border-t border-t-[#dbe1e6]   `}>

@@ -6,12 +6,14 @@ import axios from "axios";
 import { setCookie } from "cookies-next";
 import logo from "../images/Teachers' Day-cuate.png";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 const LoginPage = () => {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
+  const router = useRouter();
 
   const submitApiLogin = async () => {
     setLoading(true);
@@ -19,6 +21,7 @@ const LoginPage = () => {
       const res = await axios.post(`${process.env.local}/users/auth`, {
         phone,
         password,
+        teacher_id: process.env.teacherId,
       });
 
       setCookie("dataRoleToken", res.data.data.tokenUser, {
@@ -27,9 +30,20 @@ const LoginPage = () => {
       setCookie("UserDe", res.data.data.tokenData, {
         maxAge: 60 * 60 * 24,
       });
-      window.location.reload();
+
+      if (res.data.data.roleUsers === "teachers") {
+        router.replace("/dash");
+      } else if (res.data.data.roleUsers === "students") {
+        router.replace("/");
+      } else if (res.data.data.roleUsers === "parents") {
+        router.replace("/profile");
+      } else if (res.data.data.roleUsers === "assistants") {
+        router.replace("/dash");
+      }
+      console.log(res.data);
     } catch (error) {
       console.error(error);
+
       setErr(
         error.response?.data?.message || "Login failed. Please try again."
       );

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { MdOutlineAssessment, MdDeleteForever } from "react-icons/md";
 import EditExamDash from "../modal/chapter/examFolder/editExamDash";
@@ -13,7 +13,7 @@ const ExamsDash = ({ lessonId }): any => {
   const [modalAddExam, setModalAddExam] = useState(false);
   const [open, setOpen] = useState(false);
 
-  const fetchExams = async () => {
+  const fetchExams = useCallback(async () => {
     try {
       const res = await axios.get(
         `${process.env.local}/exams/lesson/${lessonId}`
@@ -22,10 +22,10 @@ const ExamsDash = ({ lessonId }): any => {
     } catch (error) {
       console.error("Error fetching exams:", error);
     }
-  };
+  }, [lessonId]);
   useEffect(() => {
     fetchExams();
-  }, [lessonId]);
+  }, [fetchExams]);
   const handelDeleteExam = async (examId) => {
     try {
       const res = await axios.delete(`${process.env.local}/exams/${examId}`);

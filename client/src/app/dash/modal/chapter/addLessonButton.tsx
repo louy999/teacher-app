@@ -33,7 +33,7 @@ const AddLessonButton = ({ chapterId, onLessonAdded }) => {
         uploadedImageUrl = uploadRes.data;
       }
 
-      const res = await axios.post(`${process.env.local}/lessons`, {
+      await axios.post(`${process.env.local}/lessons`, {
         title,
         chapter_id: chapterId,
         video_url: videoUrl,
@@ -43,7 +43,6 @@ const AddLessonButton = ({ chapterId, onLessonAdded }) => {
         price,
       });
 
-      console.log(res.data.data);
       setOpenModal(false);
 
       if (onLessonAdded) {

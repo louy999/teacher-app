@@ -142,6 +142,7 @@ class UsersModel {
 						`SELECT * FROM users WHERE phone=($1)`,
 						[phone]
 					)
+
 					return userInfo.rows[0]
 				} else {
 					throw new Error(`password not match`)

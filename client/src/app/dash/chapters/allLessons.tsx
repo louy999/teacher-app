@@ -1,5 +1,5 @@
 import React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { FaArrowRight } from "react-icons/fa";
 import { MdDeleteForever } from "react-icons/md";
@@ -7,7 +7,7 @@ import { MdDeleteForever } from "react-icons/md";
 const AllLessonsDash = ({ chapterId, setLessonId }) => {
   const [allData, setAllData] = useState([]);
 
-  const addLessonsFetch = async () => {
+  const addLessonsFetch = useCallback(async () => {
     try {
       const res = await axios.get(
         `${process.env.local}/lessons/chapter/${chapterId}`
@@ -16,10 +16,10 @@ const AllLessonsDash = ({ chapterId, setLessonId }) => {
     } catch (error) {
       console.log("Error fetching lessons:", error);
     }
-  };
+  }, [chapterId]);
   useEffect(() => {
     addLessonsFetch();
-  }, []);
+  }, [addLessonsFetch]);
   const handleDeleteLesson = async (lessonId) => {
     try {
       const res = await axios.delete(

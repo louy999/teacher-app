@@ -82,7 +82,7 @@ const ChapterDash = () => {
                 setLoading(true);
                 try {
                   const teacher = await axios.get(
-                    `${process.env.local}/teacher/${process.env.teacherId}`
+                    `${process.env.local}/teachers/${process.env.teacherId}`
                   );
                   setDataTeacher(teacher.data.data.grade_levels);
                   setOpenModalAddChapter(true);

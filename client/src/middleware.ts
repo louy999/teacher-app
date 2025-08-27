@@ -74,10 +74,10 @@ export async function middleware(request: NextRequest) {
       }
 
       if (request.nextUrl.pathname.startsWith("/dash")) {
-        if (role === "student") {
+        if (role === "students") {
           return NextResponse.redirect(new URL("/", request.url));
         }
-        if (role === "parent") {
+        if (role === "parents") {
           return NextResponse.redirect(new URL("/profile", request.url));
         }
       }

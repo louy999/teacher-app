@@ -20,20 +20,16 @@ const AddStudentModal = ({ modal }) => {
       if (res.data.data.length > process.env.limit) {
         setErr("limit reached for students");
       } else {
-        const addUser = await axios.post(`${process.env.local}/users`, {
+        const addUser = await axios.post(`${process.env.local}/m/addUser`, {
           full_name,
           password,
           phone,
-          role: "student",
+          role: "students",
+          teacher_id: process.env.teacherId,
+          stage,
         });
-        const addStudent = await axios.post(
-          `${process.env.local}/students/${process.env.teacherId}`,
-          {
-            id: addUser.data.data.id,
-            stage: stage,
-          }
-        );
-        console.log(addStudent.data.data);
+
+        console.log(addUser.data.data);
 
         modal(false);
         socket.emit("add_user");
