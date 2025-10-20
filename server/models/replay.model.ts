@@ -7,11 +7,10 @@ class ReplayModel {
 		try {
 			const connect = await pool.connect()
 			const sql =
-				'INSERT INTO replay (comment_id, assistant_id, student_id, text, file_url, file_type) VALUES($1, $2, $3, $4, $5, $6) returning *'
+				'INSERT INTO replay (comment_id, user_id, text, file_url, file_type) VALUES($1, $2, $3, $4, $5) returning *'
 			const result = await connect.query(sql, [
 				u.comment_id,
-				u.assistant_id,
-				u.student_id,
+				u.user_id,
 				u.text,
 				u.file_url,
 				u.file_type,
@@ -46,18 +45,7 @@ class ReplayModel {
 			throw new Error(`${err}`)
 		}
 	}
-	// get by lesson_id
-	async getByLessonId(lesson_id: string): Promise<ReplayTypes[]> {
-		try {
-			const connect = await pool.connect()
-			const sql = 'SELECT * from replay WHERE lesson_id=($1)'
-			const result = await connect.query(sql, [lesson_id])
-			connect.release()
-			return result.rows
-		} catch (err) {
-			throw new Error(`${err}`)
-		}
-	}
+
 	async getByCommentId(comment_id: string): Promise<ReplayTypes[]> {
 		try {
 			const connect = await pool.connect()

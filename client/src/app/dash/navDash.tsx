@@ -137,15 +137,47 @@ const NavDash = () => {
             )}
           </div>
 
-          {accessAssets.includes("chapters") && (
+          <li
+            className={`${
+              pathname === "/dash/chapters" ? "bg-white p-2" : "p-2"
+            } hover:bg-white rounded-md duration-200 hover:p-2 `}
+          >
+            <Link href="/dash/chapters">Chapters</Link>
+          </li>
+          <li
+            className={`${
+              pathname === "/dash/sub" ? "bg-white p-2" : "p-2"
+            } hover:bg-white rounded-md duration-200 hover:p-2 `}
+          >
+            <Link href="/dash/sub?user=lesson">Subscribe</Link>
+          </li>
+
+          <div
+            className={` duration-300 flex rounded-br-md rounded-tr-sm overflow-hidden ${
+              pathname === "/dash/sub"
+                ? "w-fit gap-3 bg-white items-center p-2 border-l"
+                : "w-[0px]"
+            } `}
+          >
             <li
-              className={`${
-                pathname === "/dash/chapters" ? "bg-white p-2" : "p-2"
-              } hover:bg-white rounded-md duration-200 hover:p-2 `}
+              className={`hover:bg-slate-100 p-1 rounded-md duration-300 ${
+                search === "lesson" ? "bg-slate-100 p-1 rounded-md" : ""
+              }`}
             >
-              <Link href="/dash/chapters">Chapters</Link>
+              <Link className="capitalize" href="?user=lesson">
+                lessons
+              </Link>
             </li>
-          )}
+            <li
+              className={`hover:bg-slate-100 p-1 rounded-md duration-300 ${
+                search === "teacher" ? "bg-slate-100 p-1 rounded-md" : ""
+              }`}
+            >
+              <Link className="capitalize" href="?user=teacher">
+                teacher
+              </Link>
+            </li>
+          </div>
         </ul>
       </div>
     </div>

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import React, { useState } from "react";
 import PhoneInput from "react-phone-input-2";
@@ -15,7 +16,9 @@ const LoginPage = () => {
   const [err, setErr] = useState("");
   const router = useRouter();
 
-  const submitApiLogin = async () => {
+  const submitApiLogin = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+
     setLoading(true);
     try {
       const res = await axios.post(`${process.env.local}/users/auth`, {
@@ -31,19 +34,18 @@ const LoginPage = () => {
         maxAge: 60 * 60 * 24,
       });
 
-      if (res.data.data.roleUsers === "teachers") {
+      if (res.data.data.role === "teachers") {
         router.replace("/dash");
-      } else if (res.data.data.roleUsers === "students") {
+      } else if (res.data.data.role === "students") {
         router.replace("/");
-      } else if (res.data.data.roleUsers === "parents") {
+      } else if (res.data.data.role === "parents") {
         router.replace("/profile");
-      } else if (res.data.data.roleUsers === "assistants") {
+      } else if (res.data.data.role === "assistants") {
         router.replace("/dash");
       }
-      console.log(res.data);
-    } catch (error) {
+      window.location.reload();
+    } catch (error: any) {
       console.error(error);
-
       setErr(
         error.response?.data?.message || "Login failed. Please try again."
       );
@@ -64,7 +66,6 @@ const LoginPage = () => {
             width={1000}
             height={1000}
             src={logo}
-            // src="https://storyset.com/illustration/teachers-day/cuate"
             alt="Teacher Illustration"
             className="w-full h-auto max-w-xs"
           />
@@ -79,45 +80,38 @@ const LoginPage = () => {
             </span>
           </h2>
 
-          <PhoneInput
-            country={"eg"}
-            value={phone}
-            onChange={(value) => setPhone(value)}
-            inputStyle={{
-              width: "100%",
-            }}
-          />
+          <form onSubmit={submitApiLogin} className="space-y-6">
+            <PhoneInput
+              country={"eg"}
+              value={phone}
+              onChange={(value) => setPhone(value)}
+              inputStyle={{
+                width: "100%",
+              }}
+            />
 
-          <input
-            type="password"
-            placeholder="Password"
-            onChange={(e) => setPassword(e.target.value)}
-            value={password}
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-400"
-          />
+            <input
+              type="password"
+              placeholder="Password"
+              onChange={(e) => setPassword(e.target.value)}
+              value={password}
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-400"
+            />
 
-          <button
-            onClick={submitApiLogin}
-            disabled={loading}
-            className={`w-full py-3 rounded-lg text-white font-semibold transition duration-300 cursor-pointer ${
-              loading
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-purple-600 hover:bg-purple-700"
-            }`}
-          >
-            {loading ? "Logging in..." : "Login"}
-          </button>
-          {err && <div className="text-red-500 text-center ">{err}</div>}
-          {/* Register Link */}
-          <p className="text-center text-sm text-gray-500">
-            Don’t have an account?{" "}
-            <a
-              href="/register"
-              className="text-purple-600 font-semibold hover:underline"
+            <button
+              type="submit"
+              disabled={loading}
+              className={`w-full py-3 rounded-lg text-white font-semibold transition duration-300 cursor-pointer ${
+                loading
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-purple-600 hover:bg-purple-700"
+              }`}
             >
-              Register here
-            </a>
-          </p>
+              {loading ? "Logging in..." : "Login"}
+            </button>
+          </form>
+
+          {err && <div className="text-red-500 text-center ">{err}</div>}
         </div>
       </div>
     </div>

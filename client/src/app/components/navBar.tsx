@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import NavMenu from "./navMenu";
 import { jwtVerify } from "jose";
+import NotificationsClient from "./notificationsClient";
 
 interface UserRole {
   full_name: string;
@@ -47,9 +48,13 @@ const NavBar = async () => {
             </Link>
 
             <div className="flex items-center gap-3 relative ">
+              {userRole.role === "students" ||
+                (userRole.role === "parents" && (
+                  <NotificationsClient user={user} />
+                ))}
               <Image
                 src={`${process.env.img}/image/${user.profile_pic}`}
-                alt="hi"
+                alt="Profile Picture"
                 width={40}
                 height={40}
                 className="rounded-full object-cover"

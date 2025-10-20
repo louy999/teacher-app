@@ -14,7 +14,9 @@ const AllLessonsDash = ({ chapterId, setLessonId }) => {
       );
       setAllData(res.data.data);
     } catch (error) {
-      console.log("Error fetching lessons:", error);
+      console.log(error);
+
+      console.log("Error fetching lessons:");
     }
   }, [chapterId]);
   useEffect(() => {

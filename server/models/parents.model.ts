@@ -11,7 +11,7 @@ class ParentsModel {
 				[u.id]
 			)
 			if (resultConfirm.rows.length) {
-				throw new Error(`this parent already exists`)
+				return resultConfirm.rows[0]
 			} else {
 				const sql = 'INSERT INTO parents (id) VALUES($1) returning *'
 				const result = await connect.query(sql, [u.id])

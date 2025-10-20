@@ -18,6 +18,8 @@ import SubscribeRoutes from './api/subscribe.routes'
 import usersRoutes from './api/users.routes'
 import transTeacher from './api/transTeacher.routes'
 import MultipleRoutes from './api/multiple.routes'
+import NotificationsRoutes from './api/notifications.routes'
+import TeacherSubscriptions from './api/teacherSubscription.routes'
 
 const routes = Router()
 routes.use('/users', usersRoutes)
@@ -38,6 +40,8 @@ routes.use('/replay', ReplyRoutes)
 routes.use('/views', ViewsRoutes)
 routes.use('/subscribe', SubscribeRoutes)
 routes.use('/trans', transTeacher)
+routes.use('/notifications', NotificationsRoutes)
+routes.use('/teacherSub', TeacherSubscriptions)
 routes.use('/m', MultipleRoutes)
 
 export default routes

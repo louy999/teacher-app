@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState } from "react";
 import axios from "axios";
+import socket from "../../../lib/socket";
 
 const AddAssistantsModal = ({ setModalAddAssist }: any) => {
   const [name, setName] = useState("");
@@ -20,7 +21,7 @@ const AddAssistantsModal = ({ setModalAddAssist }: any) => {
 
   const handleSave = async () => {
     try {
-      const res = await axios.post(`${process.env.local}/m/addUser`, {
+      await axios.post(`${process.env.local}/m/addUser`, {
         full_name: name,
         phone,
         password,
@@ -32,7 +33,7 @@ const AddAssistantsModal = ({ setModalAddAssist }: any) => {
       setPhone("");
       setPassword("");
       setAccessList([]);
-      console.log(res.data.data);
+      socket.emit("add_assist");
       setModalAddAssist(false);
     } catch (error) {
       console.error("Error creating assistant:", error);

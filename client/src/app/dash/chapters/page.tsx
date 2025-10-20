@@ -12,6 +12,7 @@ const ChapterDash = () => {
   const [dataChapter, setDataChapter] = useState([]);
   const [openModelEditChapter, setOpenModelEditChapter] = useState(false);
   const [newName, setNewName] = useState("");
+  const [newStage, setNewStage] = useState("");
   const [lessonId, setLessonId] = useState("");
   const [loading, setLoading] = useState(false);
   const [editChapterId, setEditChapterId] = useState<number | null>(null);
@@ -41,6 +42,7 @@ const ChapterDash = () => {
     try {
       await axios.patch(`${process.env.local}/chapters`, {
         name: newName,
+        stage: newStage,
         id: editChapterId,
       });
       await fetchAllChapters();
@@ -70,6 +72,20 @@ const ChapterDash = () => {
     }
   };
 
+  const fetchTeacherGrades = async () => {
+    setLoading(true);
+    try {
+      const teacher = await axios.get(
+        `${process.env.local}/teachers/${process.env.teacherId}`
+      );
+      setDataTeacher(teacher.data.data.grade_levels);
+      // console.log(teacher.data.data.grade_levels);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <>
       <div className="flex flex-col md:flex-row gap-4">
@@ -78,20 +94,9 @@ const ChapterDash = () => {
             <div>Chapters</div>
             <IoMdAddCircle
               className="cursor-pointer"
-              onClick={async () => {
-                setLoading(true);
-                try {
-                  const teacher = await axios.get(
-                    `${process.env.local}/teachers/${process.env.teacherId}`
-                  );
-                  setDataTeacher(teacher.data.data.grade_levels);
-                  setOpenModalAddChapter(true);
-                  setLoading(false);
-                } catch (error) {
-                  console.log(error);
-                } finally {
-                  setLoading(false);
-                }
+              onClick={() => {
+                fetchTeacherGrades();
+                setOpenModalAddChapter(true);
               }}
             />
           </div>
@@ -116,6 +121,7 @@ const ChapterDash = () => {
                         setOpenModelEditChapter(true);
                         setNewName(c.name);
                         setEditChapterId(c.id);
+                        fetchTeacherGrades();
                       }}
                       className="cursor-pointer hover:text-2xl duration-300"
                     />
@@ -135,6 +141,9 @@ const ChapterDash = () => {
       {openModelEditChapter && (
         <EditChapterName
           setOpenModelEditChapter={setOpenModelEditChapter}
+          dataTeacher={dataTeacher}
+          setNewStage={setNewStage}
+          newStage={newStage}
           newName={newName}
           setNewName={setNewName}
           loading={loading}

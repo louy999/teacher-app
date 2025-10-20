@@ -42,7 +42,7 @@ const LessonPage = async ({ params }: { params: Promise<Params> }) => {
     dataUser.value,
     new TextEncoder().encode(process.env.TOKEN_SECRET)
   );
-  const studentData: any = decodedToken.payload.student;
+  const studentData: any = decodedToken.payload.roleData;
 
   let studentId = "";
   try {
@@ -71,7 +71,24 @@ const LessonPage = async ({ params }: { params: Promise<Params> }) => {
   if (!lesson) {
     return <div className="text-gray-500 p-4">Lesson not found.</div>;
   }
+  let isSubscribed = "";
 
+  try {
+    const res = await axios.get(
+      `${process.env.local}/subscribe/lesson/${lessonId}/student/${studentData.id}`
+    );
+
+    isSubscribed = res.data.data.length;
+  } catch (error) {
+    // console.error("Error fetching lesson:", error);
+    // return <div className="text-red-500 p-4">Failed to load lesson data.</div>;
+    console.log(error);
+  }
+  console.log(lesson.is_paid);
+
+  if (isSubscribed === 0 && lesson.is_paid) {
+    return redirect(`/notSubscription/${lessonId}`);
+  }
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
       <div className=" w-fit rounded-full flex items-center gap-2">

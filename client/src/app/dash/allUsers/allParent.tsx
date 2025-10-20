@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use clint";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { getCookie } from "cookies-next/client";
 import { IoClose } from "react-icons/io5";
 import axios from "axios";
@@ -12,7 +12,7 @@ const AllParent = ({ parentId }): any => {
   const [dataStudentID, setDataStudentID] = useState([]);
   const [openModal, setOpenModal] = useState(false);
   const [OpenModalStudent, setOpenModalStudent] = useState(false);
-  const fetchLinkedStudents = async () => {
+  const fetchLinkedStudents = useCallback(async () => {
     try {
       const res = await axios.get(
         `${process.env.local}/ps/parent/${parentId}/teacher/${process.env.teacherId}`
@@ -22,8 +22,8 @@ const AllParent = ({ parentId }): any => {
     } catch (error) {
       console.error("Error fetching linked students:", error);
     }
-  };
-  const getParent = async () => {
+  }, [parentId]);
+  const getParent = useCallback(async () => {
     try {
       const res = await axios.get(`${process.env.local}/users/${parentId}`, {
         headers: {
@@ -34,12 +34,12 @@ const AllParent = ({ parentId }): any => {
     } catch (error) {
       console.log(error);
     }
-  };
+  }, [parentId]);
   useEffect(() => {
     getParent();
 
     fetchLinkedStudents();
-  }, [parentId]);
+  }, [fetchLinkedStudents, getParent, parentId]);
 
   return (
     <>

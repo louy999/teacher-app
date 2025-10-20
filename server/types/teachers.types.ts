@@ -4,9 +4,6 @@ type TeachersTypes = {
 	phone?: string
 	subject: string
 	grade_levels: string
-	paid?: string
-	price?: string
-	expire_date?: string
 	profile_pic?: string
 }
 

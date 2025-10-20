@@ -93,8 +93,9 @@ class ChapterModel {
 	async update(u: ChapterTypes): Promise<ChapterTypes> {
 		try {
 			const connect = await pool.connect()
-			const sql = 'UPDATE chapters SET name=($1) WHERE id=($2) returning *'
-			const result = await connect.query(sql, [u.name, u.id])
+			const sql =
+				'UPDATE chapters SET name=($1), stage=($2) WHERE id=($3) returning *'
+			const result = await connect.query(sql, [u.name, u.stage, u.id])
 			connect.release()
 			return result.rows[0]
 		} catch (err) {

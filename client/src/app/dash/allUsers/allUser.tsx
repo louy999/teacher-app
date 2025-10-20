@@ -1,16 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import AllStudent from "./allStudent";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 import AllAssistant from "./allAssistant";
 import AddStudentModal from "../modal/students/addStudent";
 import AllParent from "./allParent";
 import AddParent from "../modal/parents/addParent";
 import AddAssistantsModal from "../modal/assistants/addAssistants";
-
+import socket from "../../lib/socket";
 const AllUser = () => {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [openAddStudentModal, setOpenAddStudentModal] = useState(false);
   const [modalAddParent, setModalAddParent] = useState(false);
@@ -20,50 +22,74 @@ const AllUser = () => {
   const [fetchParentId, setFetchParentId] = useState([]);
   const [fetchAssistId, setFetchAssistId] = useState([]);
   useEffect(() => {
-    const getParent = async () => {
-      try {
-        const res = await axios.get(
-          `${process.env.local}/ps/teacher/${process.env.teacherId}`
-        );
+    if (!search) {
+      router.replace("?user=student");
+    }
+  }, [router, search]);
 
-        const uniqueParents = res.data.data.filter(
-          (parent, index, self) =>
-            index === self.findIndex((p) => p.parent_id === parent.parent_id)
-        );
-
-        setFetchParentId(uniqueParents);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    getParent();
+  const getStudent = useCallback(async () => {
+    try {
+      const res = await axios.get(
+        `${process.env.local}/st/teacher/${process.env.teacherId}`
+      );
+      setStudent(res.data.data);
+    } catch (error) {
+      console.log(error);
+    }
   }, []);
   useEffect(() => {
-    const getAssistant = async () => {
-      try {
-        const res = await axios.get(
-          `${process.env.local}/assistants/teacher/${process.env.teacherId}`
-        );
-        setFetchAssistId(res.data.data);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    getAssistant();
-  }, []);
-  useEffect(() => {
-    const getStudent = async () => {
-      try {
-        const res = await axios.get(
-          `${process.env.local}/st/teacher/${process.env.teacherId}`
-        );
-        setStudent(res.data.data);
-      } catch (error) {
-        console.log(error);
-      }
-    };
     getStudent();
+  }, [getStudent]);
+
+  useEffect(() => {
+    socket.on("all_student", getStudent);
+    return () => socket.off("all_student", getStudent);
+  }, [getStudent]);
+
+  const getParent = useCallback(async () => {
+    try {
+      const res = await axios.get(
+        `${process.env.local}/ps/teacher/${process.env.teacherId}`
+      );
+
+      const uniqueParents = res.data.data.filter(
+        (parent, index, self) =>
+          index === self.findIndex((p) => p.parent_id === parent.parent_id)
+      );
+
+      setFetchParentId(uniqueParents);
+    } catch (error) {
+      console.log(error);
+    }
   }, []);
+
+  useEffect(() => {
+    getParent();
+  }, [getParent]);
+
+  useEffect(() => {
+    socket.on("all_parent", getParent);
+    return () => socket.off("all_parent", getParent);
+  }, [getParent]);
+
+  const getAssistant = useCallback(async () => {
+    try {
+      const res = await axios.get(
+        `${process.env.local}/assistants/teacher/${process.env.teacherId}`
+      );
+      setFetchAssistId(res.data.data);
+    } catch (error) {
+      console.log(error);
+    }
+  }, []);
+  useEffect(() => {
+    getAssistant();
+  }, [getAssistant]);
+
+  useEffect(() => {
+    socket.on("all_assist", getAssistant);
+    return () => socket.off("all_assist", getAssistant);
+  }, [getAssistant]);
 
   return (
     <>
@@ -99,6 +125,12 @@ const AllUser = () => {
               </table>
             </div>
           </div>
+          <>
+            {" "}
+            {openAddStudentModal && (
+              <AddStudentModal modal={setOpenAddStudentModal} />
+            )}
+          </>
           <div className="flex px-4 py-3 justify-start">
             <button
               onClick={() => {
@@ -140,6 +172,7 @@ const AllUser = () => {
               </table>
             </div>
           </div>
+
           <div className="flex px-4 py-3 justify-start">
             <button
               onClick={() => setModalAddParent(true)}
@@ -148,6 +181,12 @@ const AllUser = () => {
               <span className="truncate">Add Parent</span>
             </button>
           </div>
+          <>
+            {" "}
+            {modalAddParent && (
+              <AddParent setModalAddParent={setModalAddParent} />
+            )}{" "}
+          </>
         </>
       ) : search === "assistant" ? (
         <>
@@ -190,14 +229,9 @@ const AllUser = () => {
               <span className="truncate">Add Assistant</span>
             </button>
           </div>
+
           {modalAddAssist && (
             <AddAssistantsModal setModalAddAssist={setModalAddAssist} />
-          )}
-          {modalAddParent && (
-            <AddParent setModalAddParent={setModalAddParent} />
-          )}
-          {openAddStudentModal && (
-            <AddStudentModal modal={setOpenAddStudentModal} />
           )}
         </>
       ) : (

@@ -9,6 +9,9 @@ import TransTeacherModal from '../../models/transTeacher.model'
 import ChapterModel from '../../models/chapter.modal'
 import ViewsModel from '../../models/views.model'
 import ParentsModel from '../../models/parents.model'
+import CommentsModel from '../../models/comments.model'
+import StudentsTeacherModel from '../../models/studentsTeachers.model'
+import ReplayModel from '../../models/replay.model'
 const usersModel = new UsersModel()
 const teachersModel = new TeachersModel()
 const studentsModel = new StudentsModel()
@@ -19,14 +22,29 @@ const transTeacherModal = new TransTeacherModal()
 const chapterModel = new ChapterModel()
 const viewsModel = new ViewsModel()
 const parentsModel = new ParentsModel()
+const commentsModel = new CommentsModel()
+const studentsTeacherModel = new StudentsTeacherModel()
+const replayModel = new ReplayModel()
 
 const routes = Router()
 //add mutable users
 routes.post('/addUser', async (req: Request, res: Response, next) => {
 	try {
-		const {full_name, password, phone, role, subject, grade_levels} = req.body
+		const {
+			full_name,
+			password,
+			phone,
+			role,
+			subject,
+			grade_levels,
+			teacherId,
+			paid,
+			price,
+			expire_date,
+		} = req.body
 
 		const newUser = await usersModel.create({full_name, password, phone, role})
+
 		if (role === 'teachers') {
 			const newTeacher = await teachersModel.create({
 				id: newUser.id,
@@ -43,6 +61,7 @@ routes.post('/addUser', async (req: Request, res: Response, next) => {
 			})
 		} else if (role === 'students') {
 			const {stage, teacher_id} = req.body
+
 			const newStudent = await studentsModel.create(
 				{id: newUser.id, stage},
 				teacher_id
@@ -90,114 +109,114 @@ routes.post('/addUser', async (req: Request, res: Response, next) => {
 })
 
 //subscription users
-routes.get(
-	'/lesson/:lesson/teacher/:teacher/student/:student',
-	async (req: Request, res: Response, next) => {
-		try {
-			const {student, teacher, lesson} = req.params
-			const getTeacher = await teachersModel.getOne(teacher)
+// routes.get(
+// 	'/lesson/:lesson/teacher/:teacher/student/:student',
+// 	async (req: Request, res: Response, next) => {
+// 		try {
+// 			const {student, teacher, lesson} = req.params
+// 			const getTeacher = await teachersModel.getOne(teacher)
 
-			if (getTeacher.paid) {
-				const trans = await transTeacherModal.getByTeacherIdAndStudentId(
-					teacher,
-					student
-				)
-				const expireTeacher = getTeacher?.expire_date
-					? new Date(getTeacher.expire_date)
-					: new Date()
+// 			if (getTeacher.paid) {
+// 				const trans = await transTeacherModal.getByTeacherIdAndStudentId(
+// 					teacher,
+// 					student
+// 				)
+// 				const expireTeacher = getTeacher?.expire_date
+// 					? new Date(getTeacher.expire_date)
+// 					: new Date()
 
-				const transDate = trans?.date ? new Date(trans.date) : new Date()
-				if (transDate <= expireTeacher) {
-					const getLesson = await lessonsModel.getOne(lesson)
+// 				const transDate = trans?.date ? new Date(trans.date) : new Date()
+// 				if (transDate <= expireTeacher) {
+// 					const getLesson = await lessonsModel.getOne(lesson)
 
-					if (getLesson.is_paid) {
-						const getStudentSubscribe =
-							await subscribeModel.getByLessonIdAndStudentId(lesson, student)
+// 					if (getLesson.is_paid) {
+// 						const getStudentSubscribe =
+// 							await subscribeModel.getByLessonIdAndStudentId(lesson, student)
 
-						if (getStudentSubscribe) {
-							const expireDate = new Date(getStudentSubscribe.expire)
-							const now = new Date()
+// 						if (getStudentSubscribe) {
+// 							const expireDate = new Date(getStudentSubscribe.expire)
+// 							const now = new Date()
 
-							if (now <= expireDate) {
-								res.json({
-									status: true,
-									data: getLesson,
-									message: 'subscription active',
-								})
-							} else {
-								res.json({
-									status: false,
-									data: 'false',
-									message: 'subscription expired',
-								})
-							}
-						} else {
-							res.json({
-								status: false,
-								data: 'false',
-								message: 'subscription expired',
-							})
-						}
-					} else {
-						res.json({
-							status: 'success',
-							data: getLesson,
-							message: 'lesson is free',
-						})
-					}
-				} else {
-					res.json({
-						status: false,
-						data: 'false',
-						message: 'subscription expired',
-					})
-				}
-			} else {
-				const getLesson = await lessonsModel.getOne(lesson)
+// 							if (now <= expireDate) {
+// 								res.json({
+// 									status: true,
+// 									data: getLesson,
+// 									message: 'subscription active',
+// 								})
+// 							} else {
+// 								res.json({
+// 									status: false,
+// 									data: 'false',
+// 									message: 'subscription expired',
+// 								})
+// 							}
+// 						} else {
+// 							res.json({
+// 								status: false,
+// 								data: 'false',
+// 								message: 'subscription expired',
+// 							})
+// 						}
+// 					} else {
+// 						res.json({
+// 							status: 'success',
+// 							data: getLesson,
+// 							message: 'lesson is free',
+// 						})
+// 					}
+// 				} else {
+// 					res.json({
+// 						status: false,
+// 						data: 'false',
+// 						message: 'subscription expired',
+// 					})
+// 				}
+// 			} else {
+// 				const getLesson = await lessonsModel.getOne(lesson)
 
-				if (getLesson.is_paid) {
-					const getStudentSubscribe = await subscribeModel.getByLessonIdAndStudentId(
-						lesson,
-						student
-					)
+// 				if (getLesson.is_paid) {
+// 					const getStudentSubscribe = await subscribeModel.getByLessonIdAndStudentId(
+// 						lesson,
+// 						student
+// 					)
 
-					if (getStudentSubscribe) {
-						const expireDate = new Date(getStudentSubscribe.expire)
-						const now = new Date()
+// 					if (getStudentSubscribe) {
+// 						const expireDate = new Date(getStudentSubscribe.expire)
+// 						const now = new Date()
 
-						if (now <= expireDate) {
-							res.json({
-								status: true,
-								data: getLesson,
-								message: 'subscription active',
-							})
-						} else {
-							res.json({
-								status: false,
-								data: 'false',
-								message: 'subscription expired',
-							})
-						}
-					} else {
-						res.json({
-							status: false,
-							data: 'false',
-							message: 'subscription expired',
-						})
-					}
-				} else {
-					res.json({
-						status: 'success',
-						data: getLesson,
-						message: 'lesson is free',
-					})
-				}
-			}
-		} catch (error) {
-			next(error)
-		}
-	}
-)
+// 						if (now <= expireDate) {
+// 							res.json({
+// 								status: true,
+// 								data: getLesson,
+// 								message: 'subscription active',
+// 							})
+// 						} else {
+// 							res.json({
+// 								status: false,
+// 								data: 'false',
+// 								message: 'subscription expired',
+// 							})
+// 						}
+// 					} else {
+// 						res.json({
+// 							status: false,
+// 							data: 'false',
+// 							message: 'subscription expired',
+// 						})
+// 					}
+// 				} else {
+// 					res.json({
+// 						status: 'success',
+// 						data: getLesson,
+// 						message: 'lesson is free',
+// 					})
+// 				}
+// 			}
+// 		} catch (error) {
+// 			next(error)
+// 		}
+// 	}
+// )
 
 routes.get(
 	'/chapterLesson/teacher/:teacherId/stage/:stage/student/:student',
@@ -234,6 +253,104 @@ routes.get(
 
 			res.json({
 				chapters: chaptersWithLessonsAndViews,
+			})
+		} catch (err) {
+			next(err)
+		}
+	}
+)
+
+routes.get(
+	'/getComments/lesson/:lesson',
+	async (req: Request, res: Response, next) => {
+		const {lesson} = req.params
+
+		try {
+			const comments = await commentsModel.getByLessonId(lesson as string)
+
+			const commentsWithUser = await Promise.all(
+				comments.map(async (comment: any) => {
+					const user = await usersModel.getOne(comment.user_id)
+
+					let extraData = null
+					if (user.role === 'teachers') {
+						extraData = await teachersModel.getOne(user.id as string)
+					} else if (user.role === 'parents') {
+						extraData = await parentsModel.getOne(user.id as string)
+					} else if (user.role === 'students') {
+						extraData = await studentsModel.getOne(user.id as string)
+					} else if (user.role === 'assistants') {
+						extraData = await assistantsModel.getOne(user.id as string)
+					}
+
+					return {
+						...comment,
+						user,
+						extraData,
+					}
+				})
+			)
+
+			res.json({
+				status: 'success',
+				data: commentsWithUser,
+				message: 'comments with users fetched successfully',
+			})
+		} catch (err) {
+			next(err)
+		}
+	}
+)
+
+routes.get(
+	`/trans/teacher/:teacherId`,
+	async (req: Request, res: Response, next) => {
+		const {teacherId} = req.params
+		try {
+			const trans = await transTeacherModal.getByTeacher_id(teacherId as string)
+
+			const TransWithStudents = await Promise.all(
+				trans.map(async (trans) => {
+					const user = await usersModel.getOne(trans.student_id as string)
+					const extraData = await studentsModel.getOne(user.id as string)
+					return {...trans, user, extraData}
+				})
+			)
+			res.json({
+				status: 'success',
+				data: TransWithStudents,
+				message: 'trans fetched successfully',
+			})
+		} catch (err) {
+			next(err)
+		}
+	}
+)
+
+routes.get(
+	`/replay/comment/:commentId`,
+	async (req: Request, res: Response, next) => {
+		const {commentId} = req.params
+		try {
+			const replays = await replayModel.getByCommentId(commentId as string)
+
+			const replaysWithUsers = await Promise.all(
+				replays.map(async (replay) => {
+					const user = await usersModel.getOne(replay.user_id as string)
+					if (user.role === 'teachers') {
+						const extraData = await teachersModel.getOne(user.id as string)
+						return {...replay, user, extraData}
+					} else if (user.role === 'assistants') {
+						const extraData = await assistantsModel.getOne(user.id as string)
+						return {...replay, user, extraData}
+					}
+				})
+			)
+
+			res.json({
+				status: 'success',
+				data: replaysWithUsers,
+				message: 'Replays fetched successfully',
 			})
 		} catch (err) {
 			next(err)

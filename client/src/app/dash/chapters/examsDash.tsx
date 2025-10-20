@@ -41,13 +41,17 @@ const ExamsDash = ({ lessonId }): any => {
         onClick={() => setModalAddExam(true)}
         className="flex w-fit items-center gap-4 "
       >
-        <h2 className="text-xl font-bold text-gray-700 hover:text-3xl duration-300 hover:opacity-50 cursor-pointer">
-          Assessment{" "}
+        <h2 className="text-xl font-bold text-gray-700  duration-300 hover:opacity-50 cursor-pointer">
+          Assessment
         </h2>
-        <IoMdAddCircle className="text-2xl" onClick={() => setOpen(true)} />
+        <IoMdAddCircle
+          className="text-2xl cursor-pointer"
+          onClick={() => setOpen(true)}
+        />
         <AddFormModal
           open={open}
           setOpen={setOpen}
+          fetchExams={fetchExams}
           type="exam"
           lessonId={lessonId}
           onCreated={() => console.log("Exam Created!")}

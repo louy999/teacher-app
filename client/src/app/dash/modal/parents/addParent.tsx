@@ -2,6 +2,9 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import MapInfoStudent from "./mapInfoStudent";
+import socket from "../../../lib/socket";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
 
 const AddParent = ({ setModalAddParent }: any) => {
   const [err, setErr] = useState("");
@@ -34,18 +37,11 @@ const AddParent = ({ setModalAddParent }: any) => {
           student_id: idSTudent,
         });
         console.log(fa.data.data);
-        window.location.reload();
       }
+      setModalAddParent(false);
+      socket.emit("add_parent");
     } catch (error: any) {
-      if (axios.isAxiosError(error)) {
-        setErr(
-          error.response?.data?.message ||
-            error.message ||
-            "Something went wrong"
-        );
-      } else {
-        setErr("An unexpected error occurred");
-      }
+      setErr(error.response?.data?.message);
     } finally {
       setLoading(false);
     }
@@ -87,6 +83,23 @@ const AddParent = ({ setModalAddParent }: any) => {
           </div>
           <div className="text-black text-xl p-4 relative">
             <label
+              htmlFor="phone"
+              className="absolute -top-1 text-base bg-white left-5 px-1 capitalize"
+            >
+              Phone
+            </label>
+
+            <PhoneInput
+              country={"eg"}
+              value={phone}
+              onChange={(value) => setPhone(value)}
+              inputStyle={{
+                width: "100%",
+              }}
+            />
+          </div>
+          <div className="text-black text-xl p-4 relative">
+            <label
               htmlFor="password"
               className="absolute top-1 text-base bg-white left-7 px-1 capitalize"
             >
@@ -98,22 +111,6 @@ const AddParent = ({ setModalAddParent }: any) => {
               value={password}
               required
               id="password"
-              className="border w-full p-2 rounded-md"
-            />
-          </div>
-          <div className="text-black text-xl p-4 relative">
-            <label
-              htmlFor="phone"
-              className="absolute top-1 text-base bg-white left-7 px-1 capitalize"
-            >
-              Phone
-            </label>
-            <input
-              type="text"
-              id="phone"
-              onChange={(e) => setPhone(e.target.value)}
-              value={phone}
-              required
               className="border w-full p-2 rounded-md"
             />
           </div>
@@ -130,6 +127,7 @@ const AddParent = ({ setModalAddParent }: any) => {
               ))}
             </select>
           </div>
+          <div className=" text-center text-sm text-red-500">{err}</div>
 
           {/* Buttons */}
           <div className="flex justify-center gap-4 p-4">
@@ -151,7 +149,6 @@ const AddParent = ({ setModalAddParent }: any) => {
                 loading
               </button>
             )}
-            {err}
           </div>
         </div>
       </div>

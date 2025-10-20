@@ -1,7 +1,11 @@
-import { io } from "socket.io-client";
+import { io, Socket } from "socket.io-client";
 
-const socket = io(process.env.img, {
-  transports: ["websocket"],
-});
+let socket: Socket;
+
+if (!socket) {
+  socket = io(process.env.img!, {
+    transports: ["websocket"],
+  });
+}
 
 export default socket;

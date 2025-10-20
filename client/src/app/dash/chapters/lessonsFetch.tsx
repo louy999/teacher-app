@@ -7,6 +7,7 @@ import EditNameLesson from "../modal/chapter/editNameLesson";
 import EditPlayer from "../modal/chapter/editPlayer";
 import EditFilesLesson from "../modal/chapter/editFilesLesson";
 import ExamsDash from "./examsDash";
+import CommentAllDash from "../modal/chapter/comments/comment";
 
 const LessonsFetch = ({ lessonId }): any => {
   const [lesson, setLesson] = useState<any>(null);
@@ -32,6 +33,7 @@ const LessonsFetch = ({ lessonId }): any => {
       <EditPlayer lesson={lesson} setLesson={setLesson} />
       <EditFilesLesson lessonId={lesson.id} />
       <ExamsDash lessonId={lesson.id} />
+      <CommentAllDash lessonId={lesson.id} />
     </div>
   );
 };

@@ -30,8 +30,11 @@ const AllChapters = async () => {
           Explore the chapters and lessons available in this course.
         </p>
 
-        {allChaptersFromStage.data.chapters.map(
-          (chapter: any, index: number) => {
+        {allChaptersFromStage.data.chapters
+          .sort(
+            (a: any, b: any) => new Date(a.created_at) - new Date(b.created_at)
+          )
+          .map((chapter: any, index: number) => {
             return (
               <section key={index} className="bg-white rounded-xl p-6">
                 <h2 className="text-xl font-bold italic text-red-600 mb-6 capitalize">
@@ -40,8 +43,7 @@ const AllChapters = async () => {
                 <AllLessons allData={chapter.lessons} />
               </section>
             );
-          }
-        )}
+          })}
       </div>
     );
   } catch (error) {

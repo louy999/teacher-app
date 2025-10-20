@@ -19,27 +19,30 @@ class UsersModel {
 				[u.phone]
 			)
 			if (checkUser.rows.length) {
-				throw new Error(`user with this phone already exists`)
+				connect.release()
+
+				return checkUser.rows[0]
+			} else {
+				const sql =
+					'INSERT INTO users (full_name, password, phone, role) values ($1, $2, $3, $4) returning *'
+				// run query
+				const result = await connect.query(sql, [
+					u.full_name,
+					hashPassword(u.password),
+					u.phone,
+					u.role,
+				])
+				//release connect
+				connect.release()
+				//return created
+				return result.rows[0]
 			}
-			const sql =
-				'INSERT INTO users (full_name, password, phone, role) values ($1, $2, $3, $4) returning *'
-			//run query
-			const result = await connect.query(sql, [
-				u.full_name,
-				hashPassword(u.password),
-				u.phone,
-				u.role,
-			])
-			//release connect
-			connect.release()
-			//return created
-			return result.rows[0]
 		} catch (err: any) {
 			// throw new Error(`name already exists! `)
 			throw new Error(`${err} `)
 		}
 	}
-	//get all
+	//get all7
 	async getAll(): Promise<Users[]> {
 		try {
 			//open connect with DB

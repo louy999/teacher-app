@@ -11,7 +11,7 @@ class AssistantsModel {
 				[u.id]
 			)
 			if (resultConfirm.rows.length) {
-				throw new Error(`this assistants already exists`)
+				return resultConfirm.rows[0]
 			} else {
 				const sql =
 					'INSERT INTO assistants (teacher_id, id, access) VALUES($1, $2, $3) returning *'

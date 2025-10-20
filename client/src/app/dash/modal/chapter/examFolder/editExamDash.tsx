@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import ExamImage from "./examImage";
 import ExamAnswers from "./examAnswers";
 import { IoMdAddCircle } from "react-icons/io";
 import AddFormModal from "./addFormModal";
+import { IoMdCloseCircleOutline } from "react-icons/io";
 
 const EditExamDash = ({
   setOpenModelEditExam,
@@ -25,17 +26,17 @@ const EditExamDash = ({
   const [editTime, setEditTime] = useState("");
   const [editNotes, setEditNotes] = useState("");
 
-  useEffect(() => {
-    const fetchExamDetails = async () => {
-      try {
-        const res = await axios.get(`${process.env.local}/qa/exam/${examId}`);
-        setQuestions(res.data.data);
-      } catch (error) {
-        console.error("Error fetching exam details:", error);
-      }
-    };
-    fetchExamDetails();
+  const fetchExamDetails = useCallback(async () => {
+    try {
+      const res = await axios.get(`${process.env.local}/qa/exam/${examId}`);
+      setQuestions(res.data.data);
+    } catch (error) {
+      console.error("Error fetching exam details:", error);
+    }
   }, [examId]);
+  useEffect(() => {
+    fetchExamDetails();
+  }, [fetchExamDetails]);
 
   const handleSave = async () => {
     try {
@@ -80,8 +81,6 @@ const EditExamDash = ({
       const updatedQuestions = [...questions];
       updatedQuestions[currentIndex] = res.data;
       setQuestions(updatedQuestions);
-
-      alert("Saved successfully");
     } catch (err) {
       console.error("Error saving question:", err);
       alert("Error saving changes");
@@ -106,7 +105,13 @@ const EditExamDash = ({
   return (
     <div className="fixed top-0 left-0 w-screen h-screen flex justify-center items-center bg-black/50 z-50">
       <div className="bg-white rounded-md p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-        <h2 className="text-xl font-bold mb-4">Edit Exam</h2>
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-bold mb-4">Edit Exam</h2>
+          <IoMdCloseCircleOutline
+            className="text-4xl cursor-pointer text-red-400 hover:text-4xl hover:opacity-55 duration-300"
+            onClick={() => setOpenModelEditExam(false)}
+          />
+        </div>
 
         <div className="flex flex-wrap justify-center gap-2 mb-4">
           {questions.map((_, i) => (
@@ -129,7 +134,9 @@ const EditExamDash = ({
             setOpen={setOpen}
             type="question"
             examId={examId}
-            onCreated={() => console.log("Question Created!")}
+            onCreated={() => {
+              fetchExamDetails();
+            }}
           />
         </div>
 

@@ -1,15 +1,22 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
 
 const EditChapterName = ({
   setOpenModelEditChapter,
   setNewName,
   newName,
+  setNewStage,
+  dataTeacher,
+  newStage,
   onSubmitEdit,
   loading,
 }: {
   setOpenModelEditChapter: (v: boolean) => void;
   setNewName: (v: string) => void;
   newName: string;
+  setNewStage: (v: string) => void;
+  dataTeacher: any;
+  newStage: string;
   loading: boolean;
   onSubmitEdit: () => void;
 }) => {
@@ -36,6 +43,25 @@ const EditChapterName = ({
                 className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter chapter name"
               />
+            </div>
+            <div className="mb-4">
+              <label className="block text-gray-700 mb-2" htmlFor="chapterName">
+                Stage
+              </label>
+              <select
+                className="mt-2 border w-full p-2 rounded-md"
+                onChange={(e) => setNewStage(e.target.value)}
+                value={newStage}
+              >
+                <option value="" disabled>
+                  Select Grade Level
+                </option>
+                {dataTeacher.map((grade, index) => (
+                  <option key={index} value={grade}>
+                    {grade}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="flex gap-5 justify-between items-center">
               {!loading ? (

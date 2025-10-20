@@ -22,7 +22,7 @@ routes.get('/', async (req: Request, res: Response, next) => {
 		const subscribe = await subscribeModel.getAll()
 		res.json({
 			status: 'success',
-			data: subscribe,
+			data: subscribe || [],
 			message: 'users retrieved successfully',
 		})
 	} catch (err: any) {
@@ -37,7 +37,7 @@ routes.get('/:id', async (req: Request, res: Response, next) => {
 		)
 		res.json({
 			status: 'success',
-			data: subscribe,
+			data: subscribe || [],
 			message: 'subscribe retrieved successfully',
 		})
 	} catch (err) {
@@ -52,7 +52,7 @@ routes.get('/student/:student', async (req: Request, res: Response, next) => {
 		)
 		res.json({
 			status: 'success',
-			data: subscribe,
+			data: subscribe || [],
 			message: 'subscribe retrieved successfully',
 		})
 	} catch (err) {
@@ -85,7 +85,7 @@ routes.get(
 			)
 			res.json({
 				status: 'success',
-				data: subscribe,
+				data: subscribe || [],
 				message: 'subscribe retrieved successfully',
 			})
 		} catch (err) {
@@ -99,7 +99,7 @@ routes.patch('/', async (req: Request, res: Response, next) => {
 		const subscribe = await subscribeModel.update(req.body)
 		res.json({
 			status: 'success',
-			data: subscribe,
+			data: subscribe || [],
 			message: 'subscribe updated successfully',
 		})
 	} catch (err) {
@@ -114,7 +114,7 @@ routes.delete('/:id', async (req: Request, res: Response, next) => {
 		)
 		res.json({
 			status: 'success',
-			data: subscribe,
+			data: subscribe || [],
 			message: 'subscribe deleted successfully',
 		})
 	} catch (err) {

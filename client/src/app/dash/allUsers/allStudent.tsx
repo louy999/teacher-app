@@ -4,7 +4,6 @@ import React, { useEffect, useCallback, useState } from "react";
 import { getCookie } from "cookies-next/client";
 import axios from "axios";
 import EditStudent from "../modal/students/editStudent";
-import socket from "../../lib/socket";
 
 const AllStudent = ({ studentId }: any) => {
   const [dataUser, setDataUser] = useState({});
@@ -33,10 +32,6 @@ const AllStudent = ({ studentId }: any) => {
     getStudent();
   }, [getStudent]);
 
-  useEffect(() => {
-    socket.on("all_user", getStudent);
-    return () => socket.off("all_user", getStudent);
-  }, [getStudent]);
   return (
     <>
       <tr className={`border-t border-t-[#dbe1e6]   `}>

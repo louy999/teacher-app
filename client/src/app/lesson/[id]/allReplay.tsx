@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import Image from "next/image";
 import Link from "next/link";
-import AssistDet from "./assistDet";
 
 interface ReplayData {
   id: string;
@@ -25,10 +24,11 @@ const AllReplay: React.FC<AllReplayProps> = ({ commentId }) => {
     const fetchReplay = async () => {
       try {
         const res = await axios.get(
-          `${process.env.local}/replay/comment/${commentId}`
+          `${process.env.local}/m/replay/comment/${commentId}`
         );
 
         setReplayData(res.data.data);
+        console.log(res.data.data);
       } catch (error) {
         console.error("Error fetching replies:", error);
       }
@@ -48,7 +48,25 @@ const AllReplay: React.FC<AllReplayProps> = ({ commentId }) => {
             <div className="flex items-start gap-3 p-4">
               <div className="flex-1">
                 <p>
-                  <AssistDet assistantId={replay.assistant_id} />
+                  <div className="flex gap-2">
+                    {replay.extraData.profile_pic && (
+                      <Image
+                        src={`${process.env.img}/image/${replay.extraData.profile_pic}`}
+                        alt="Attached file"
+                        width={40}
+                        height={40}
+                        className="rounded-md object-cover"
+                      />
+                    )}
+                    <p>
+                      <span className="text-xs text-slate-500 mr-1">
+                        {replay.user.role}:
+                      </span>
+                      <span className="font-bold capitalize">
+                        {replay.user.full_name}
+                      </span>
+                    </p>
+                  </div>{" "}
                   <p className="text-xs text-gray-500 mt-1">
                     {new Date(replay.date).toLocaleString()}
                   </p>
@@ -65,7 +83,7 @@ const AllReplay: React.FC<AllReplayProps> = ({ commentId }) => {
                       sizes="(max-width: 768px) 100vw, 240px"
                       loading="lazy"
                     />
-                  ) : (
+                  ) : replay?.file_type === "file" ? (
                     <div>
                       {replay.file_url}
                       <Link
@@ -78,6 +96,8 @@ const AllReplay: React.FC<AllReplayProps> = ({ commentId }) => {
                         Download
                       </Link>
                     </div>
+                  ) : (
+                    ""
                   )}
                   <p className="text-sm text-gray-800">{replay.text}</p>
                 </div>

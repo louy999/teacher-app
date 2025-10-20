@@ -11,6 +11,7 @@ interface AddFormModalProps {
   lessonId?: number;
   examId?: number;
   onCreated?: () => void;
+  fetchExams: () => void;
 }
 
 const AddFormModal: React.FC<AddFormModalProps> = ({
@@ -20,6 +21,7 @@ const AddFormModal: React.FC<AddFormModalProps> = ({
   lessonId,
   examId,
   onCreated,
+  fetchExams,
 }) => {
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -125,6 +127,7 @@ const AddFormModal: React.FC<AddFormModalProps> = ({
       console.error("Error saving:", err);
     } finally {
       setLoading(false);
+      fetchExams();
     }
   };
 

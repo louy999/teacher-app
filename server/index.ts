@@ -82,9 +82,16 @@ io.on('connection', (socket) => {
 	socket.on('add_comment', () => {
 		io.emit('all_com')
 	})
-	socket.on('add_user', () => {
-		io.emit('all_user')
+	socket.on('add_student', () => {
+		io.emit('all_student')
 	})
+	socket.on('add_parent', () => {
+		io.emit('all_parent')
+	})
+	socket.on('add_assist', () => {
+		io.emit('all_assist')
+	})
+
 	socket.on('disconnect', () => {
 		console.log('🔌 Disconnected socket id:', socket.id)
 	})

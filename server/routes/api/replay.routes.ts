@@ -42,21 +42,7 @@ routes.get('/:id', async (req: Request, res: Response, next) => {
 		next(err)
 	}
 })
-//get specific by lesson
-routes.get('/lesson/:lesson', async (req: Request, res: Response, next) => {
-	try {
-		const replay = await replayModel.getByLessonId(
-			req.params.lesson as unknown as string
-		)
-		res.json({
-			status: 'success',
-			data: replay,
-			message: 'replay retrieved successfully',
-		})
-	} catch (err) {
-		next(err)
-	}
-})
+
 //get specific by comment
 routes.get('/comment/:comment', async (req: Request, res: Response, next) => {
 	try {

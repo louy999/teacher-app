@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import socket from "../../../lib/socket";
-
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
 const AddStudentModal = ({ modal }) => {
   const [err, setErr] = useState("");
   const [full_name, setFull_name] = useState("");
@@ -9,18 +10,18 @@ const AddStudentModal = ({ modal }) => {
   const [phone, setPhone] = useState("");
   const [stage, setStage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [gradeTeacher, setGradeTeacher] = useState([]);
   const handleAddStudent = async () => {
     setLoading(true);
     try {
       const res = await axios.get(
         `${process.env.local}/st/teacher/${process.env.teacherId}`
       );
-      console.log(res.data.data);
 
       if (res.data.data.length > process.env.limit) {
         setErr("limit reached for students");
       } else {
-        const addUser = await axios.post(`${process.env.local}/m/addUser`, {
+        await axios.post(`${process.env.local}/m/addUser`, {
           full_name,
           password,
           phone,
@@ -29,17 +30,32 @@ const AddStudentModal = ({ modal }) => {
           stage,
         });
 
-        console.log(addUser.data.data);
-
         modal(false);
-        socket.emit("add_user");
+        socket.emit("add_student");
       }
     } catch (error) {
-      console.log(error);
+      console.log(setErr(error.response.data.message));
+      setTimeout(() => {
+        setErr("");
+      }, 5000);
     } finally {
       setLoading(false);
     }
   };
+  useEffect(() => {
+    const getGrade = async () => {
+      try {
+        const res = await axios.get(
+          `${process.env.local}/teachers/${process.env.teacherId}`
+        );
+        console.log(res.data.data);
+        setGradeTeacher(res.data.data.grade_levels);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    getGrade();
+  }, []);
 
   return (
     <div className="fixed top-0 left-0 flex justify-center items-center h-screen w-screen bg-black/50 z-50">
@@ -62,6 +78,24 @@ const AddStudentModal = ({ modal }) => {
               className="border w-full p-2 rounded-md"
             />
           </div>
+
+          <div className="text-black text-xl p-4 relative">
+            <label
+              htmlFor="phone"
+              className="absolute -top-1 text-base bg-white left-5 px-1 capitalize"
+            >
+              Phone
+            </label>
+
+            <PhoneInput
+              country={"eg"}
+              value={phone}
+              onChange={(value) => setPhone(value)}
+              inputStyle={{
+                width: "100%",
+              }}
+            />
+          </div>
           <div className="text-black text-xl p-4 relative">
             <label
               htmlFor="password"
@@ -80,37 +114,35 @@ const AddStudentModal = ({ modal }) => {
           </div>
           <div className="text-black text-xl p-4 relative">
             <label
-              htmlFor="phone"
-              className="absolute top-1 text-base bg-white left-7 px-1 capitalize"
-            >
-              Phone
-            </label>
-            <input
-              type="text"
-              id="phone"
-              onChange={(e) => setPhone(e.target.value)}
-              value={phone}
-              required
-              className="border w-full p-2 rounded-md"
-            />
-          </div>
-          <div className="text-black text-xl p-4 relative">
-            <label
               htmlFor="stage"
               className="absolute top-1 text-base bg-white left-7 px-1 capitalize"
             >
               Stage
             </label>
-            <input
+            {/* <input
               type="text"
               onChange={(e) => setStage(e.target.value)}
               value={stage}
               required
               id="stage"
               className="border w-full p-2 rounded-md"
-            />
+            /> */}
+            <select
+              className="mt-2 border w-full p-2 rounded-md"
+              onChange={(e) => setStage(e.target.value)}
+              value={stage}
+            >
+              <option value="" disabled>
+                Select Grade Level
+              </option>
+              {gradeTeacher.map((grade, index) => (
+                <option key={index} value={grade}>
+                  {grade}
+                </option>
+              ))}
+            </select>
           </div>
-
+          <div className=" text-center text-sm text-red-500">{err}</div>
           {/* Buttons */}
           <div className="flex justify-center gap-4 p-4">
             <button
@@ -131,7 +163,6 @@ const AddStudentModal = ({ modal }) => {
                 loading
               </button>
             )}
-            {err}
           </div>
         </div>
       </div>
