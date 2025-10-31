@@ -74,6 +74,21 @@ routes.get('/lesson/:lesson', async (req: Request, res: Response, next) => {
 		next(err)
 	}
 })
+//get specific by teacher
+routes.get('/teacher/:teacherId', async (req: Request, res: Response, next) => {
+	try {
+		const subscribe = await subscribeModel.getByTeacherId(
+			req.params.teacherId as unknown as string
+		)
+		res.json({
+			status: 'success',
+			data: subscribe,
+			message: 'subscribe retrieved successfully',
+		})
+	} catch (err) {
+		next(err)
+	}
+})
 //get specific by lesson and student
 routes.get(
 	'/lesson/:lesson/student/:student',

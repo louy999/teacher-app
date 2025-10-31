@@ -79,7 +79,7 @@ const Comment = ({ lessonId, studentId }: CommentProps) => {
   }, []);
 
   return (
-    <div className="rounded-md py-4">
+    <div className="my-5 py-4 bg-blue-100 p-3 rounded-3xl ">
       <div>
         {commentsData
           .filter((e) => e.shown === false)
@@ -90,7 +90,7 @@ const Comment = ({ lessonId, studentId }: CommentProps) => {
             return (
               <div
                 key={comment.id}
-                className="gap-3 mb-5 border-l-black border-l-3"
+                className="gap-3 mb-5 border-l-black border-l-3 bg-slate-200/80 pb-2 pr-2"
               >
                 <div className="flex items-start gap-3 p-4">
                   <Image
@@ -142,7 +142,7 @@ const Comment = ({ lessonId, studentId }: CommentProps) => {
                           </Link>
                         </div>
                       )}
-                      <p className="mt-3 text-gray-800 text-base">
+                      <p className="mt-3 text-gray-800 text-base whitespace-pre-line p-2 rounded-md">
                         {comment.text}
                       </p>
                     </div>

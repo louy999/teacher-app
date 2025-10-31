@@ -14,7 +14,6 @@ const StudentProfilePage = async ({ params }: any) => {
   const cookieStore = await cookies();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const role: any = cookieStore.get("dataRoleToken") || null;
-  console.log(role);
 
   try {
     const getAllDetailsUserRole = await axios.get(
@@ -37,7 +36,10 @@ const StudentProfilePage = async ({ params }: any) => {
               roleDet={getAllDetailsUserRole.data.data}
               studentDet={infoUser.data.data}
             />
-            <SubscribeTeacher studentId={getAllDetailsUserRole.data.data} />
+            <SubscribeTeacher
+              studentId={getAllDetailsUserRole.data.data}
+              dash={false}
+            />
           </div>
           <ViewedLessons roleDet={getAllDetailsUserRole.data.data} />
           <PaidLessons roleDet={getAllDetailsUserRole.data.data} />
@@ -48,6 +50,8 @@ const StudentProfilePage = async ({ params }: any) => {
       redirect("/");
     }
   } catch (error) {
+    console.log(error);
+
     redirect("/");
     return <div>{error.message}</div>;
   }

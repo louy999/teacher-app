@@ -7,11 +7,10 @@ class TeacherSubscriptionsModal {
 		try {
 			const connect = await pool.connect()
 			const sql =
-				'INSERT INTO teacher_subscriptions (teacher_id, expire_date, plan, price) VALUES($1, $2, $3, $4) returning *'
+				'INSERT INTO teacher_subscriptions (teacher_id, expire_date, price) VALUES($1, $2, $3) returning *'
 			const result = await connect.query(sql, [
 				u.teacher_id,
 				u.expire_date,
-				u.plan,
 				u.price,
 			])
 			connect.release()
@@ -59,13 +58,13 @@ class TeacherSubscriptionsModal {
 		}
 	}
 	// get by teacher_id
-	async getByTeacher_id(teacher_id: string): Promise<TeacherSubscriptions[]> {
+	async getByTeacher_id(teacher_id: string): Promise<TeacherSubscriptions> {
 		try {
 			const connect = await pool.connect()
 			const sql = 'SELECT * from teacher_subscriptions WHERE teacher_id=($1)'
 			const result = await connect.query(sql, [teacher_id])
 			connect.release()
-			return result.rows
+			return result.rows[0]
 		} catch (err) {
 			throw new Error(`${err}`)
 		}
@@ -76,11 +75,11 @@ class TeacherSubscriptionsModal {
 		try {
 			const connect = await pool.connect()
 			const sql =
-				'UPDATE teacher_subscriptions SET expire_date=($1), plan=($2), price=($3) WHERE id=($4)  returning *'
+				'UPDATE teacher_subscriptions SET expire_date=($1), price=($2), active=($3) WHERE id=($4)  returning *'
 			const result = await connect.query(sql, [
 				u.expire_date,
-				u.plan,
 				u.price,
+				u.active,
 				u.id,
 			])
 			connect.release()

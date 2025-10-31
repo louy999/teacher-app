@@ -119,6 +119,7 @@ const AddComment: React.FC<AddCommentProps> = ({ lessonId, studentId }) => {
             file_type: file.type.split("/")[0] === "image" ? "image" : "file",
             shown: false,
           });
+          socket.emit("add_comment");
         } else {
           await axios.post(`${process.env.local}/comments`, {
             text: textInput,

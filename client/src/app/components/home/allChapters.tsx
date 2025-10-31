@@ -24,20 +24,18 @@ const AllChapters = async () => {
     }
 
     return (
-      <div className="max-w-7xl mx-auto p-6 space-y-10">
+      <div className="max-w-full mx-auto p-6 space-y-10">
         <h1 className="text-3xl font-bold mb-6">Course Chapters</h1>
         <p className="text-gray-500 mb-10">
           Explore the chapters and lessons available in this course.
         </p>
 
         {allChaptersFromStage.data.chapters
-          .sort(
-            (a: any, b: any) => new Date(a.created_at) - new Date(b.created_at)
-          )
+          .sort((a: any, b: any) => new Date(a.date) - new Date(b.date))
           .map((chapter: any, index: number) => {
             return (
               <section key={index} className="bg-white rounded-xl p-6">
-                <h2 className="text-xl font-bold italic text-red-600 mb-6 capitalize">
+                <h2 className="text-xl font-bold italic text-[#4338CA] mb-6 capitalize">
                   {chapter.name}
                 </h2>
                 <AllLessons allData={chapter.lessons} />

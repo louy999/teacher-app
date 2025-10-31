@@ -3,6 +3,7 @@ type SubscribeType = {
 	date?: string
 	student_id: string
 	lesson_id: string
+	teacher_id: string
 	expire: string
 	price: string
 }

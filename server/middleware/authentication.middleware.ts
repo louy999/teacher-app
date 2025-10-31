@@ -17,26 +17,23 @@ const validateTokenMiddleware = (
 	try {
 		const authHeader = req.get('Authorization')
 
-		if (!authHeader) {
-			return handleUnauthorizedError(next)
+		if (authHeader) {
+			const decode = jwt.verify(
+				authHeader,
+				config.tokenSecret as unknown as string
+			)
+			console.log(decode)
+
+			if (decode) {
+				next()
+			} else {
+				// Failed to authenticate user.
+				handleUnauthorizedError(next)
+			}
+		} else {
+			// No Token Provided.
+			handleUnauthorizedError(next)
 		}
-
-		const decoded = jwt.verify(
-			authHeader,
-			config.tokenSecret as string
-		) as jwt.JwtPayload
-
-		const userIdFromToken = decoded.id
-		const userIdFromParams = req.params.id
-
-		if (userIdFromToken != userIdFromParams) {
-			const error: Error = new Error('Unauthorized: ID mismatch')
-			error.status = 403 // Forbidden
-			error.message = 'You do not have permission to access this resource'
-			return next(error)
-		}
-
-		next()
 	} catch (err) {
 		handleUnauthorizedError(next)
 	}

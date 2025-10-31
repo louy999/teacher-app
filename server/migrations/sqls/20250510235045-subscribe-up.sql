@@ -1,8 +1,9 @@
 /* Replace with your SQL commands */
-CREATE TABLE subscribe(
+CREATE TABLE subscribe_lesson(
     id uuid DEFAULT uuid_generate_v4 () PRIMARY KEY,
     date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     student_id uuid NOT NULL REFERENCES students (id) ON DELETE CASCADE,
+    teacher_id uuid NOT NULL REFERENCES teachers (id) ON DELETE CASCADE,
     lesson_id uuid NOT NULL REFERENCES lessons (id) ON DELETE CASCADE,
     expire TEXT NOT NULL,
     price VARCHAR(200)

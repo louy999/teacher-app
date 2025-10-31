@@ -1,9 +1,10 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import Image from "next/image";
 import AllReplay from "./allReplay";
 import Link from "next/link";
+import socket from "../../lib/socket";
 
 type CommentData = {
   id: string;
@@ -22,23 +23,24 @@ const AllComments = ({ lessonId }: CommentProps) => {
   const [commentsData, setCommentsData] = useState<CommentData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const commentsRes = await axios.get(
-          `${process.env.local}/comments/lesson/${lessonId}`
-        );
-        setCommentsData(commentsRes.data.data);
-      } catch (error) {
-        console.error("Error fetching comments or student data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+  const fetchData = useCallback(async () => {
+    try {
+      const commentsRes = await axios.get(
+        `${process.env.local}/comments/lesson/${lessonId}`
+      );
+      setCommentsData(commentsRes.data.data);
+    } catch (error) {
+      console.error("Error fetching comments or student data:", error);
+    } finally {
+      setLoading(false);
+    }
   }, [lessonId]);
-
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+  socket.on("all_comment", () => {
+    fetchData();
+  });
   if (loading) {
     return (
       <div className="mt-4 px-4">
@@ -48,7 +50,7 @@ const AllComments = ({ lessonId }: CommentProps) => {
   }
 
   return (
-    <div className="mt-4 ">
+    <div className="mt-4 bg-blue-100 p-3 rounded-3xl ">
       <h2 className="text-xl font-semibold mb-5 text-gray-700">
         public comments
       </h2>
@@ -57,7 +59,10 @@ const AllComments = ({ lessonId }: CommentProps) => {
         {commentsData
           .filter((comment) => comment.shown)
           .map((comment) => (
-            <div key={comment.id} className="gap-3 mb-5  border-l-2 ">
+            <div
+              key={comment.id}
+              className="gap-3 mb-5  border-l-2 bg-slate-200/80 border-l-black pb-2 pr-2"
+            >
               <div className="flex items-start gap-3 p-4">
                 <div className="flex-1">
                   <p className="flex gap-2 my-2">
@@ -103,7 +108,7 @@ const AllComments = ({ lessonId }: CommentProps) => {
                         </Link>
                       </div>
                     )}
-                    <p className="text-base text-gray-800 mt-2">
+                    <p className="mt-3 text-gray-800 text-base whitespace-pre-line">
                       {comment.text}
                     </p>
                   </div>

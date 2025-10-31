@@ -2,8 +2,9 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import Image from "next/image";
 import NavMenu from "./navMenu";
+import { GiBookAura } from "react-icons/gi";
 import { jwtVerify } from "jose";
-import NotificationsClient from "./notificationsClient";
+// import NotificationsClient from "./notificationsClient";
 
 interface UserRole {
   full_name: string;
@@ -42,16 +43,13 @@ const NavBar = async () => {
           <div className="flex justify-between items-center w-full md:w-8/12 lg:w-6/12 px-4">
             <Link
               href="/"
-              className="text-xl cursor-pointer font-bold text-purple-600"
+              className="text-xl cursor-pointer font-bold text-[#4338CA] flex items-center gap-2"
             >
-              Logo
+              <GiBookAura className="text-3xl" />
+              <span className="text-black">Logo</span>
             </Link>
 
             <div className="flex items-center gap-3 relative ">
-              {userRole.role === "students" ||
-                (userRole.role === "parents" && (
-                  <NotificationsClient user={user} />
-                ))}
               <Image
                 src={`${process.env.img}/image/${user.profile_pic}`}
                 alt="Profile Picture"
@@ -64,9 +62,6 @@ const NavBar = async () => {
           </div>
         </nav>
       );
-      // } else {
-      //   return <div>No Profile Picture</div>;
-      // }
     } catch (error) {
       console.error("Error decoding token:", error);
       return <div>Error decoding token, please try again later.</div>;
@@ -74,16 +69,17 @@ const NavBar = async () => {
   } else {
     return (
       <nav className="w-full flex justify-center items-center py-4 bg-white ">
-        <div className="flex justify-between items-center w-full md:w-8/12 lg:w-6/12 px-4">
+        <div className="flex justify-between items-center w-full md:w-10/12  px-4">
           <Link
             href="/"
-            className="text-xl cursor-pointer font-bold text-purple-600"
+            className="text-xl cursor-pointer font-bold text-[#3B82F6] flex items-center gap-2"
           >
-            Logo
+            <GiBookAura className="text-3xl" />
+            <span className="text-black">Logo</span>
           </Link>
           <Link
             href="/login"
-            className="text-base font-medium text-gray-700 p-2 bg-gray-200 hover:bg-gray-100 duration-500 rounded"
+            className="text-base font-medium text-[#3B82F6] border border-[#3B82F6]  p-1 px-2 hover:bg-[#3B82F6] hover:text-white bg-white duration-500 rounded"
           >
             Sign up
           </Link>

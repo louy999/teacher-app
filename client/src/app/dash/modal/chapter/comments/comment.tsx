@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 // import AllReplay from "../../../../lesson/[id]/allReplay";
 import ReplayDash from "./replayDash";
+import socket from "../../../../lib/socket";
 
 const CommentAllDash = ({ lessonId }) => {
   const [allComments, setAllComments] = useState([]);
@@ -24,7 +25,9 @@ const CommentAllDash = ({ lessonId }) => {
   useEffect(() => {
     fetchComments();
   }, [fetchComments, lessonId]);
-
+  socket.on("all_comment", () => {
+    fetchComments();
+  });
   const EditShowComment = async (text, file_url, file_type, shown, id) => {
     try {
       await axios.patch(`${process.env.local}/comments`, {
@@ -137,7 +140,9 @@ const CommentAllDash = ({ lessonId }) => {
                         </Link>
                       </div>
                     )}
-                    <p className="mt-3 text-gray-800 text-base">{c.text}</p>
+                    <p className="mt-3 text-gray-800 text-base whitespace-pre-line">
+                      {c.text}
+                    </p>
                   </div>
 
                   <div

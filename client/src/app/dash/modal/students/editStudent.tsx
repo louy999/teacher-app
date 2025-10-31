@@ -5,6 +5,7 @@ import InfoStudent from "./infoStudent";
 import PaidLessonsDash from "./paidLessons";
 import ViewedLessonsDash from "./viewdLesson";
 import AllViewsExam from "../../../profile/[studentId]/exam/allViewsExam";
+import SubscribeTeacher from "../../../profile/[studentId]/subscribeTeacher";
 
 const EditStudent = ({ dataUser, dataStudent, setOpenModal }: any) => {
   return (
@@ -18,7 +19,10 @@ const EditStudent = ({ dataUser, dataStudent, setOpenModal }: any) => {
             />
           </div>
         </div>
-        <InfoStudent roleDet={dataUser} studentDet={dataStudent} />
+        <div className="flex justify-between growing flex-col md:flex-row gap-4">
+          <InfoStudent roleDet={dataUser} studentDet={dataStudent} />
+          <SubscribeTeacher studentId={dataUser} dash={true} />
+        </div>
         <PaidLessonsDash roleDet={dataUser} studentDet={dataStudent} />
         <ViewedLessonsDash roleDet={dataUser} />
         <AllViewsExam roleDet={dataUser} />

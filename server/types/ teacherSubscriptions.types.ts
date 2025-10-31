@@ -4,6 +4,7 @@ type TeacherSubscription = {
 	teacher_id: string
 	expire_date: string
 	plan: string
+	active: boolean
 	price: string
 }
 export default TeacherSubscriptions

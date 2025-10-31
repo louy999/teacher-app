@@ -26,11 +26,11 @@ const AllUser = () => {
       router.replace("?user=student");
     }
   }, [router, search]);
-
+  //fetch student
   const getStudent = useCallback(async () => {
     try {
       const res = await axios.get(
-        `${process.env.local}/st/teacher/${process.env.teacherId}`
+        `${process.env.local}/m/getAllUserTeacher/${process.env.teacherId}/students`
       );
       setStudent(res.data.data);
     } catch (error) {
@@ -45,18 +45,17 @@ const AllUser = () => {
     socket.on("all_student", getStudent);
     return () => socket.off("all_student", getStudent);
   }, [getStudent]);
-
+  //fetch parent
   const getParent = useCallback(async () => {
     try {
       const res = await axios.get(
-        `${process.env.local}/ps/teacher/${process.env.teacherId}`
+        `${process.env.local}/m/getAllUserTeacher/${process.env.teacherId}/parents`
       );
-
+      //filter unique parent_id
       const uniqueParents = res.data.data.filter(
         (parent, index, self) =>
           index === self.findIndex((p) => p.parent_id === parent.parent_id)
       );
-
       setFetchParentId(uniqueParents);
     } catch (error) {
       console.log(error);
@@ -71,12 +70,14 @@ const AllUser = () => {
     socket.on("all_parent", getParent);
     return () => socket.off("all_parent", getParent);
   }, [getParent]);
-
+  //fetch assistant
   const getAssistant = useCallback(async () => {
     try {
       const res = await axios.get(
-        `${process.env.local}/assistants/teacher/${process.env.teacherId}`
+        `${process.env.local}/m/getAllUserTeacher/${process.env.teacherId}/assistants`
       );
+      console.log(res.data.data);
+
       setFetchAssistId(res.data.data);
     } catch (error) {
       console.log(error);
@@ -95,9 +96,20 @@ const AllUser = () => {
     <>
       {search === "student" ? (
         <>
-          <h3 className="text-[#111518] text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4">
-            Students
-          </h3>
+          <div className="flex px-4 py-3 justify-start gap-5 items-center">
+            <h3 className="text-[#111518] text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4">
+              Students
+            </h3>
+            <button
+              onClick={() => {
+                setOpenAddStudentModal(true);
+              }}
+              className="flex min-w-[84px] cursor-pointer max-w-[480px] items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-[#0b80ee] text-white text-sm font-bold leading-normal tracking-[0.015em]"
+            >
+              <span className="truncate">Add Student</span>
+            </button>
+          </div>
+
           <div className="px-4 py-3 @container">
             <div className="flex overflow-hidden rounded-xl border border-[#dbe1e6] bg-white">
               <table className="flex-1">
@@ -119,7 +131,7 @@ const AllUser = () => {
                 </thead>
                 <tbody>
                   {student.map((student: any, index: any) => (
-                    <AllStudent key={index} studentId={student.student_id} />
+                    <AllStudent key={index} student={student} />
                   ))}
                 </tbody>
               </table>
@@ -131,22 +143,21 @@ const AllUser = () => {
               <AddStudentModal modal={setOpenAddStudentModal} />
             )}
           </>
-          <div className="flex px-4 py-3 justify-start">
-            <button
-              onClick={() => {
-                setOpenAddStudentModal(true);
-              }}
-              className="flex min-w-[84px] cursor-pointer max-w-[480px] items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-[#0b80ee] text-white text-sm font-bold leading-normal tracking-[0.015em]"
-            >
-              <span className="truncate">Add Student</span>
-            </button>
-          </div>
         </>
       ) : search === "parent" ? (
         <>
-          <h3 className="text-[#111518] text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4">
-            Parent
-          </h3>
+          <div className="flex px-4 py-3 justify-start gap-5 items-center">
+            <h3 className="text-[#111518] text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4">
+              Parent
+            </h3>
+            <button
+              onClick={() => setModalAddParent(true)}
+              className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-[#0b80ee] text-white text-sm font-bold leading-normal tracking-[0.015em]"
+            >
+              <span className="truncate">Add Parent</span>
+            </button>
+          </div>
+
           <div className="px-4 py-3 @container">
             <div className="flex overflow-hidden rounded-xl border border-[#dbe1e6] bg-white">
               <table className="flex-1">
@@ -173,14 +184,6 @@ const AllUser = () => {
             </div>
           </div>
 
-          <div className="flex px-4 py-3 justify-start">
-            <button
-              onClick={() => setModalAddParent(true)}
-              className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-[#0b80ee] text-white text-sm font-bold leading-normal tracking-[0.015em]"
-            >
-              <span className="truncate">Add Parent</span>
-            </button>
-          </div>
           <>
             {" "}
             {modalAddParent && (
@@ -190,9 +193,18 @@ const AllUser = () => {
         </>
       ) : search === "assistant" ? (
         <>
-          <h3 className="text-[#111518] text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4">
-            Assistant
-          </h3>
+          <div
+            className="flex px-4 py-3 justify-start gap-5 items-center"
+            onClick={() => setModalAddAssist(true)}
+          >
+            <h3 className="text-[#111518] text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4">
+              Assistant
+            </h3>
+            <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-[#0b80ee] text-white text-sm font-bold leading-normal tracking-[0.015em]">
+              <span className="truncate">Add Assistant</span>
+            </button>
+          </div>
+
           <div className="px-4 py-3 @container">
             <div className="flex overflow-hidden rounded-xl border border-[#dbe1e6] bg-white">
               <table className="flex-1">
@@ -220,14 +232,6 @@ const AllUser = () => {
                 </tbody>
               </table>
             </div>
-          </div>
-          <div
-            className="flex px-4 py-3 justify-start"
-            onClick={() => setModalAddAssist(true)}
-          >
-            <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-[#0b80ee] text-white text-sm font-bold leading-normal tracking-[0.015em]">
-              <span className="truncate">Add Assistant</span>
-            </button>
           </div>
 
           {modalAddAssist && (

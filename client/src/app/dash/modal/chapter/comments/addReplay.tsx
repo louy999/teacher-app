@@ -3,6 +3,7 @@ import { CiImageOn } from "react-icons/ci";
 import { getCookie } from "cookies-next/client";
 import { jwtVerify } from "jose";
 import axios from "axios";
+import socket from "../../../../lib/socket";
 
 const AddReplay = ({ commentId }) => {
   const [errText, setErrText] = useState(false);
@@ -77,6 +78,7 @@ const AddReplay = ({ commentId }) => {
             file_url: fetchFile.data,
             file_type: file.type.split("/")[0] === "image" ? "image" : "file",
           });
+          socket.emit("add_replay");
         } else {
           await axios.post(`${process.env.local}/replay`, {
             comment_id: commentId,
@@ -85,6 +87,7 @@ const AddReplay = ({ commentId }) => {
             file_url: "",
             file_type: "",
           });
+          socket.emit("add_replay");
         }
       } catch (error) {
         console.log(error);

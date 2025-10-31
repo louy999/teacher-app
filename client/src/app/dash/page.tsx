@@ -28,7 +28,9 @@ const page = async () => {
       </>
     );
   } catch (error) {
-    console.log(error);
+    <div className="flex justify-center items-center text-red-300 w-full h-full bg-black/30">
+      {error}
+    </div>;
   }
 };
 

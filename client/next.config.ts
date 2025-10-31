@@ -22,11 +22,12 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+
   env: {
     customKey: "novaraTo",
     local: "http://localhost:5000/api",
     img: "http://localhost:5000",
-    teacherId: "65c357b6-2135-47db-92ff-728510c96c60",
+    teacherId: "f01e1565-75c3-4e92-990b-692999f151af",
     teacherName: "mr.ahmed",
     TOKEN_SECRET: "tokenPas123",
     limit: "50",

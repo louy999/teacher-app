@@ -7,9 +7,10 @@ class SubscribeModel {
 		try {
 			const connect = await pool.connect()
 			const sql =
-				'INSERT INTO subscribe (student_id, lesson_id, expire, price) VALUES($1, $2, $3, $4) returning *'
+				'INSERT INTO subscribe_lesson (student_id, teacher_id, lesson_id, expire, price) VALUES($1, $2, $3, $4, $5) returning *'
 			const result = await connect.query(sql, [
 				u.student_id,
+				u.teacher_id,
 				u.lesson_id,
 				u.expire,
 				u.price,
@@ -17,14 +18,14 @@ class SubscribeModel {
 			connect.release()
 			return result.rows[0]
 		} catch (error) {
-			throw new Error(`Error creating subscribe relationship: ${error}`)
+			throw new Error(`Error creating subscribe_lesson relationship: ${error}`)
 		}
 	}
 	// get all
 	async getAll(): Promise<SubscribeType[]> {
 		try {
 			const connect = await pool.connect()
-			const sql = 'SELECT * from subscribe'
+			const sql = 'SELECT * from subscribe_lesson'
 			const result = await connect.query(sql)
 			connect.release()
 			return result.rows
@@ -36,7 +37,7 @@ class SubscribeModel {
 	async getOne(id: string): Promise<SubscribeType> {
 		try {
 			const connect = await pool.connect()
-			const sql = 'SELECT * from subscribe WHERE id=($1)'
+			const sql = 'SELECT * from subscribe_lesson WHERE id=($1)'
 			const result = await connect.query(sql, [id])
 			connect.release()
 			return result.rows[0]
@@ -48,7 +49,7 @@ class SubscribeModel {
 	async getByStudentId(student_id: string): Promise<SubscribeType[]> {
 		try {
 			const connect = await pool.connect()
-			const sql = 'SELECT * from subscribe WHERE student_id=($1)'
+			const sql = 'SELECT * from subscribe_lesson WHERE student_id=($1)'
 			const result = await connect.query(sql, [student_id])
 			connect.release()
 			return result.rows
@@ -65,7 +66,7 @@ class SubscribeModel {
 			const connect = await pool.connect()
 			const sql = `
       SELECT * 
-      FROM subscribe 
+      FROM subscribe_lesson 
       WHERE lesson_id = $1 AND student_id = $2
       ORDER BY date DESC 
       LIMIT 1
@@ -81,8 +82,19 @@ class SubscribeModel {
 	async getByLessonId(lesson_id: string): Promise<SubscribeType[]> {
 		try {
 			const connect = await pool.connect()
-			const sql = 'SELECT * from subscribe WHERE lesson_id=($1)'
+			const sql = 'SELECT * from subscribe_lesson WHERE lesson_id=($1)'
 			const result = await connect.query(sql, [lesson_id])
+			connect.release()
+			return result.rows
+		} catch (err) {
+			throw new Error(`${err}`)
+		}
+	}
+	async getByTeacherId(teacherId: string): Promise<SubscribeType[]> {
+		try {
+			const connect = await pool.connect()
+			const sql = 'SELECT * from subscribe_lesson WHERE teacher_id=($1)'
+			const result = await connect.query(sql, [teacherId])
 			connect.release()
 			return result.rows
 		} catch (err) {
@@ -94,7 +106,7 @@ class SubscribeModel {
 		try {
 			const connect = await pool.connect()
 			const sql =
-				'UPDATE subscribe SET expire=($1), price=($2) WHERE id=($3) returning *'
+				'UPDATE subscribe_lesson SET expire=($1), price=($2) WHERE id=($3) returning *'
 			const result = await connect.query(sql, [u.expire, u.price, u.id])
 			connect.release()
 			return result.rows[0]
@@ -106,7 +118,7 @@ class SubscribeModel {
 	async delete(id: string): Promise<SubscribeType> {
 		try {
 			const connect = await pool.connect()
-			const sql = 'DELETE from subscribe WHERE id=($1) returning *'
+			const sql = 'DELETE from subscribe_lesson WHERE id=($1) returning *'
 			const result = await connect.query(sql, [id])
 			connect.release()
 			return result.rows[0]

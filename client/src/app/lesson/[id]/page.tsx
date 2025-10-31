@@ -77,6 +77,7 @@ const LessonPage = async ({ params }: { params: Promise<Params> }) => {
     const res = await axios.get(
       `${process.env.local}/subscribe/lesson/${lessonId}/student/${studentData.id}`
     );
+    console.log(res.data.data);
 
     isSubscribed = res.data.data.length;
   } catch (error) {
@@ -84,9 +85,11 @@ const LessonPage = async ({ params }: { params: Promise<Params> }) => {
     // return <div className="text-red-500 p-4">Failed to load lesson data.</div>;
     console.log(error);
   }
-  console.log(lesson.is_paid);
 
   if (isSubscribed === 0 && lesson.is_paid) {
+    return redirect(`/notSubscription/${lessonId}`);
+  }
+  if (isSubscribed && new Date(isSubscribed.expire) < new Date()) {
     return redirect(`/notSubscription/${lessonId}`);
   }
   return (
@@ -111,7 +114,7 @@ const LessonPage = async ({ params }: { params: Promise<Params> }) => {
       />
       <Files lessonId={lesson.id} />
       <ExamPage lessonId={lesson.id} studentId={studentId} />
-      <div className="bg-amber-100/50 p-2 rounded-md">
+      <div className=" p-2 rounded-md">
         <AddComment lessonId={lesson.id} studentId={studentId} />
         <Comment lessonId={lesson.id} studentId={studentId} />
         <AllComments lessonId={lesson.id} />

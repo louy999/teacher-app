@@ -26,7 +26,7 @@ const SubAndViewLesson: React.FC<SubAndViewLessonProps> = ({ lesson }) => {
   return (
     <Link
       href={`/lesson/${lesson.id}`}
-      className={`bg-white rounded-md shadow-sm border border-gray-200 cursor-pointer w-60 h-80 flex-shrink-0 transition-transform hover:scale-[1.02] ${
+      className={`bg-white rounded-md shadow-sm border border-gray-200 cursor-pointer w-80 h-96  flex-shrink-0 transition-transform hover:scale-[1.02] ${
         lesson.is_active ? "block" : "hidden"
       } ${isViewed ? "opacity-60" : ""}`}
     >
@@ -43,23 +43,23 @@ const SubAndViewLesson: React.FC<SubAndViewLessonProps> = ({ lesson }) => {
 
       {isViewed && (
         <div
-          className="bg-teal-500 h-[4px] transition-all"
+          className="bg-[#EF4444] h-[4px] transition-all"
           style={{ width: `${progressPercent}%` }}
         ></div>
       )}
 
       <div className="px-3 py-2 h-1/3 flex flex-col justify-between">
         <div>
-          <h3 className="text-base font-semibold text-gray-800 truncate">
+          <h3 className="text-xl font-semibold text-gray-800 truncate">
             {lesson.title}
           </h3>
-          <p className="text-sm text-gray-500">
+          <p className="text-base text-gray-500">
             {format(new Date(lesson.date), "d MMM yyyy")}
           </p>
         </div>
 
         {lesson.is_paid && !isViewed && (
-          <div className="flex items-center text-red-600 font-bold text-sm mt-1">
+          <div className="flex items-center text-red-600 font-bold text-base mt-1">
             Price: {lesson.price} <FaPoundSign className="ml-1" />
           </div>
         )}

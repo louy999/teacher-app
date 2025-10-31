@@ -1,8 +1,9 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import Image from "next/image";
 import Link from "next/link";
+import socket from "../../lib/socket";
 
 interface ReplayData {
   id: string;
@@ -20,22 +21,24 @@ interface AllReplayProps {
 const AllReplay: React.FC<AllReplayProps> = ({ commentId }) => {
   const [replayData, setReplayData] = useState<ReplayData[]>([]);
 
-  useEffect(() => {
-    const fetchReplay = async () => {
-      try {
-        const res = await axios.get(
-          `${process.env.local}/m/replay/comment/${commentId}`
-        );
+  const fetchReplay = useCallback(async () => {
+    try {
+      const res = await axios.get(
+        `${process.env.local}/m/replay/comment/${commentId}`
+      );
 
-        setReplayData(res.data.data);
-        console.log(res.data.data);
-      } catch (error) {
-        console.error("Error fetching replies:", error);
-      }
-    };
-    fetchReplay();
+      setReplayData(res.data.data);
+      console.log(res.data.data);
+    } catch (error) {
+      console.error("Error fetching replies:", error);
+    }
   }, [commentId]);
-
+  useEffect(() => {
+    fetchReplay();
+  }, [commentId, fetchReplay]);
+  socket.on("all_replay", () => {
+    fetchReplay();
+  });
   if (replayData.length === 0) {
     return null;
   }
@@ -99,7 +102,9 @@ const AllReplay: React.FC<AllReplayProps> = ({ commentId }) => {
                   ) : (
                     ""
                   )}
-                  <p className="text-sm text-gray-800">{replay.text}</p>
+                  <p className="mt-3 text-gray-800 text-base whitespace-pre-line">
+                    {replay.text}
+                  </p>
                 </div>
               </div>
             </div>

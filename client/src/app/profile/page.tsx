@@ -37,7 +37,6 @@ const ProfilePage = () => {
 
     getTokenVerify();
   }, [role]);
-  console.log(tokenData);
 
   useEffect(() => {
     if (tokenData) {

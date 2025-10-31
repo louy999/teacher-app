@@ -5,7 +5,7 @@ import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import axios from "axios";
 import { setCookie } from "cookies-next";
-import logo from "../images/Teachers' Day-cuate.png";
+import logo from "../images/Teacher student-rafiki.png";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
@@ -58,10 +58,10 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-blue-50 to-purple-100 flex items-center justify-center p-4">
-      <div className="bg-white shadow-2xl rounded-2xl grid grid-cols-1 md:grid-cols-2 w-full max-w-5xl overflow-hidden">
+    <div className="absolute w-full h-full top-0 left-0 -z-20 bg-gradient-to-b from-blue-200 to-blue-100  flex items-center justify-center p-4">
+      <div className="bg-white shadow-2xl rounded-2xl grid grid-cols-1 md:grid-cols-2 w-11/12 md:9/12 lg:w-6/12 overflow-hidden">
         {/* 3D Illustration */}
-        <div className="hidden md:flex items-center justify-center bg-purple-100 p-6">
+        <div className="hidden md:flex items-center justify-center ">
           <Image
             width={1000}
             height={1000}
@@ -73,17 +73,18 @@ const LoginPage = () => {
 
         {/* Login Form */}
         <div className="flex flex-col justify-center p-8 space-y-6">
-          <h2 className="text-2xl  text-gray-800 text-center">
-            Login With{" "}
-            <span className="font-bold capitalize">
-              {process.env.teacherName}
-            </span>
+          <h2 className="text-3xl  text-gray-800 text-center">
+            <div className="font-bold capitalize">Welcome Back!</div>
+            <div className="text-sm italic text-slate-500">
+              Log in to your student account
+            </div>
           </h2>
 
           <form onSubmit={submitApiLogin} className="space-y-6">
             <PhoneInput
               country={"eg"}
               value={phone}
+              className="shadow-2xl"
               onChange={(value) => setPhone(value)}
               inputStyle={{
                 width: "100%",
@@ -95,16 +96,16 @@ const LoginPage = () => {
               placeholder="Password"
               onChange={(e) => setPassword(e.target.value)}
               value={password}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-400"
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#3B82F6] focus:border-transparent"
             />
 
             <button
               type="submit"
               disabled={loading}
-              className={`w-full py-3 rounded-lg text-white font-semibold transition duration-300 cursor-pointer ${
+              className={`w-full py-3 shadow-2xl rounded-lg text-white font-semibold transition duration-300 cursor-pointer ${
                 loading
                   ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-purple-600 hover:bg-purple-700"
+                  : "bg-[#3B82F6] hover:bg-[#4338CA]"
               }`}
             >
               {loading ? "Logging in..." : "Login"}
