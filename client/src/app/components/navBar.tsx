@@ -39,7 +39,7 @@ const NavBar = async () => {
 
       // if (user && user.profile_pic) {
       return (
-        <nav className="w-full flex justify-center items-center py-4 bg-white shadow-xl z-20">
+        <nav className="w-full relative left-2/4 -translate-x-2/4 flex justify-center items-center py-4 bg-white shadow-xl z-20">
           <div className="flex justify-between items-center w-full md:w-8/12 lg:w-6/12 px-4">
             <Link
               href="/"

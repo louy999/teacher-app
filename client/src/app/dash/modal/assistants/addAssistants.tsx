@@ -8,7 +8,7 @@ const AddAssistantsModal = ({ setModalAddAssist }: any) => {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [accessList, setAccessList] = useState<string[]>([]);
-
+  const [err, setErr] = useState("");
   const allAccess = ["students", "parents", "assistants", "chapters"];
 
   const toggleAccess = (item: string) => {
@@ -21,20 +21,29 @@ const AddAssistantsModal = ({ setModalAddAssist }: any) => {
 
   const handleSave = async () => {
     try {
-      await axios.post(`${process.env.local}/m/addUser`, {
-        full_name: name,
-        phone,
-        password,
-        role: "assistants",
-        teacher_id: process.env.teacherId,
-        access: accessList,
-      });
-      setName("");
-      setPhone("");
-      setPassword("");
-      setAccessList([]);
-      socket.emit("add_assist");
-      setModalAddAssist(false);
+      const res = await axios.get(
+        `${process.env.local}/teacherAssist/teacher/${process.env.teacherId}`
+      );
+      if (res.data.data.length >= Number(process.env.assist)) {
+        setErr("limit reached for assistants");
+        return;
+      } else {
+        await axios.post(`${process.env.local}/m/addUser`, {
+          full_name: name,
+          phone,
+          password,
+          role: "assistants",
+          teacher_id: process.env.teacherId,
+          access: accessList,
+        });
+
+        setName("");
+        setPhone("");
+        setPassword("");
+        setAccessList([]);
+        socket.emit("add_assist");
+        setModalAddAssist(false);
+      }
     } catch (error) {
       console.error("Error creating assistant:", error);
     }
@@ -103,7 +112,7 @@ const AddAssistantsModal = ({ setModalAddAssist }: any) => {
             </div>
           </div>
         </div>
-
+        <div className="text-center text-red-400 capitalize">{err}</div>
         {/* Buttons */}
         <div className="mt-4 flex justify-between">
           <button

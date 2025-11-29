@@ -9,6 +9,7 @@ import AssistantsModel from '../../models/assistants.model'
 import ParentsModel from '../../models/parents.model'
 import StudentsTeacherModel from '../../models/studentsTeachers.model'
 import ParentsStudentsModel from '../../models/ParentsStudents.model'
+import TeachersAssistModel from '../../models/teachersAssist.model'
 const teachersModel = new TeachersModel()
 const studentsModel = new StudentsModel()
 const assistantsModel = new AssistantsModel()
@@ -16,6 +17,7 @@ const parentsModel = new ParentsModel()
 const usersModel = new UsersModel()
 const studentsTeacherModel = new StudentsTeacherModel()
 const parentsStudentsModel = new ParentsStudentsModel()
+const teachersAssistModel = new TeachersAssistModel()
 
 const routes = Router()
 //create
@@ -139,10 +141,11 @@ routes.post('/auth', async (req: Request, res: Response, next) => {
 				throw new Error('this number not subscribe with teacher')
 			}
 		} else if (user.role === 'assistants') {
-			const assistant = await assistantsModel.getByTeacherIdAndAssistant(
+			const assistant = await teachersAssistModel.getByTeacherIdAssistId(
 				teacher_id as unknown as string,
 				user.id as unknown as string
 			)
+
 			if (assistant) {
 				roleData = await assistantsModel.getOne(user.id as unknown as string)
 			} else {

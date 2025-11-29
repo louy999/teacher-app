@@ -14,6 +14,7 @@ import StudentsTeacherModel from '../../models/studentsTeachers.model'
 import ReplayModel from '../../models/replay.model'
 import TeacherSubscriptionsModal from '../../models/teacherSubscription.modal'
 import ParentsStudentsModel from '../../models/ParentsStudents.model'
+import TeachersAssistModel from '../../models/teachersAssist.model'
 const usersModel = new UsersModel()
 const teachersModel = new TeachersModel()
 const studentsModel = new StudentsModel()
@@ -29,6 +30,7 @@ const studentsTeacherModel = new StudentsTeacherModel()
 const replayModel = new ReplayModel()
 const teacherSubscriptionsModal = new TeacherSubscriptionsModal()
 const parentsStudentsModel = new ParentsStudentsModel()
+const teachersAssistModel = new TeachersAssistModel()
 
 const routes = Router()
 //add mutable users
@@ -95,12 +97,17 @@ routes.post('/addUser', async (req: Request, res: Response, next) => {
 				access,
 				teacher_id,
 			})
+			const assist = await teachersAssistModel.create({
+				teacher_id,
+				assistant_id: newAssist.id,
+			})
 
 			res.json({
 				status: 'success',
 				data: {
 					user: newUser,
 					student: newAssist,
+					assist,
 				},
 				message: 'user and assistant created successfully',
 			})
@@ -379,7 +386,7 @@ routes.get(
 
 		try {
 			if (access === 'assistants') {
-				users = await assistantsModel.getByTeacherId(teacherId)
+				users = await teachersAssistModel.getByTeacherId(teacherId)
 			} else if (access === 'students') {
 				users = await studentsTeacherModel.getByTeacherId(teacherId)
 			} else if (access === 'parents') {
@@ -391,14 +398,14 @@ routes.get(
 				users.map(async (u: any) => {
 					const extraDataUser = await usersModel.getOne(
 						access === 'assistants'
-							? u.id
+							? u.assistant_id
 							: access === 'students'
 							? u.student_id
 							: u.parent_id
 					)
 					const extraDataAccess =
 						access === 'assistants'
-							? await assistantsModel.getOne(u.id)
+							? await assistantsModel.getOne(u.assistant_id)
 							: access === 'students'
 							? await studentsModel.getOne(u.student_id)
 							: await parentsModel.getOne(u.parent_id)

@@ -30,7 +30,7 @@ export default function RootLayout({
       // className={`${poppins.className}  md:flex justify-center items-center w-full min-h-screen h-full md:p-5 antialiased bg-[#E7EBEE]`}
       >
         {/* <div className="container md:w-9/12  p-10 md:rounded-xl bg-white  md:min-h-[90vh] h-full shadow-2xl "> */}
-        <div className="">
+        <div className="w-full overflow-x-hidden">
           <NavBar />
           {children}
         </div>

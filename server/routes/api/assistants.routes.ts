@@ -48,40 +48,7 @@ routes.get('/:id', async (req: Request, res: Response, next) => {
 		next(err)
 	}
 })
-//get specific by teacher id
-routes.get('/teacher/:teacher', async (req: Request, res: Response, next) => {
-	try {
-		const assistant = await assistantsModel.getByTeacherId(
-			req.params.teacher as unknown as string
-		)
-		res.json({
-			status: 'success',
-			data: assistant,
-			message: 'assistant retrieved successfully',
-		})
-	} catch (err) {
-		next(err)
-	}
-})
-//get specific by teacher id and assistant id
-routes.get(
-	'/teacher/:teacher/assistant/:assistant',
-	async (req: Request, res: Response, next) => {
-		try {
-			const assistant = await assistantsModel.getByTeacherIdAndAssistant(
-				req.params.teacher as unknown as string,
-				req.params.assistant as unknown as string
-			)
-			res.json({
-				status: 'success',
-				data: assistant,
-				message: 'assistant retrieved successfully',
-			})
-		} catch (err) {
-			next(err)
-		}
-	}
-)
+
 //update
 routes.patch('/', async (req: Request, res: Response, next) => {
 	try {

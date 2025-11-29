@@ -13,9 +13,8 @@ class AssistantsModel {
 			if (resultConfirm.rows.length) {
 				return resultConfirm.rows[0]
 			} else {
-				const sql =
-					'INSERT INTO assistants (teacher_id, id, access) VALUES($1, $2, $3) returning *'
-				const result = await connect.query(sql, [u.teacher_id, u.id, u.access])
+				const sql = 'INSERT INTO assistants (id, access) VALUES($1, $2) returning *'
+				const result = await connect.query(sql, [u.id, u.access])
 				connect.release()
 				return result.rows[0]
 			}
@@ -48,45 +47,14 @@ class AssistantsModel {
 			throw new Error(`${err}`)
 		}
 	}
-	// get by teacher id
-	async getByTeacherId(teacher_id: string): Promise<AssistantsTypes[]> {
-		try {
-			const connect = await pool.connect()
-			const sql = 'SELECT * from assistants WHERE teacher_id=($1)'
-			const result = await connect.query(sql, [teacher_id])
-			connect.release()
-			return result.rows
-		} catch (err) {
-			throw new Error(`${err}`)
-		}
-	}
-	// get by teacher id and assistant id
-	async getByTeacherIdAndAssistant(
-		teacher_id: string,
-		id: string
-	): Promise<AssistantsTypes> {
-		try {
-			const connect = await pool.connect()
-			const sql = 'SELECT * from assistants WHERE teacher_id=($1) AND id=($2)'
-			const result = await connect.query(sql, [teacher_id, id])
-			connect.release()
-			return result.rows[0]
-		} catch (err) {
-			throw new Error(`${err}`)
-		}
-	}
+
 	// update
 	async update(u: AssistantsTypes): Promise<AssistantsTypes> {
 		try {
 			const connect = await pool.connect()
 			const sql =
-				'UPDATE assistants SET profile_pic=($1), teacher_id=($2), access=($3) WHERE id=($4) returning *'
-			const result = await connect.query(sql, [
-				u.profile_pic,
-				u.teacher_id,
-				u.access,
-				u.id,
-			])
+				'UPDATE assistants SET profile_pic=($1), access=($2) WHERE id=($3) returning *'
+			const result = await connect.query(sql, [u.profile_pic, u.access, u.id])
 			connect.release()
 			return result.rows[0]
 		} catch (err) {

@@ -10,7 +10,7 @@ import SubscribeTeacher from "../../../profile/[studentId]/subscribeTeacher";
 const EditStudent = ({ dataUser, dataStudent, setOpenModal }: any) => {
   return (
     <div className="fixed flex justify-center items-center top-0 left-0 bg-black/50 w-screen h-screen">
-      <div className="w-full md:w-8/12 bg-white rounded-md p-4">
+      <div className="w-10/12 md:w-8/12 bg-white rounded-md p-4 h-11/12 overflow-y-auto">
         <div className="flex justify-end">
           <div>
             <IoClose

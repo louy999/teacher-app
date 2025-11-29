@@ -2,15 +2,19 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import axios from "axios";
+import socket from "../../../lib/socket";
 
 const EditAssistantModal = ({
   setOpenModalEditAssistant,
   assist,
   dataUser,
 }: any) => {
-  const [accessList, setAccessList] = useState<string[]>(assist.access || []);
+  const [accessList, setAccessList] = useState<string[]>(
+    assist.extraDataAccess.access || []
+  );
 
   const allAccess = ["assistants", "students", "parents", "chapters"];
+  console.log(assist);
 
   const toggleAccess = (item: string) => {
     if (accessList.includes(item)) {
@@ -22,14 +26,13 @@ const EditAssistantModal = ({
 
   const editAccess = async () => {
     try {
-      const res = await axios.patch(`${process.env.local}/assistants`, {
-        profile_pic: assist.profile_pic,
-        teacher_id: assist.teacher_id,
+      await axios.patch(`${process.env.local}/assistants`, {
+        profile_pic: assist.extraDataAccess.profile_pic,
         access: accessList,
-        id: assist.id,
+        id: assist.extraDataAccess.id,
       });
-      console.log(res);
       setOpenModalEditAssistant(false);
+      socket.emit("add_assist");
     } catch (error) {
       console.log(error);
     }
@@ -37,13 +40,13 @@ const EditAssistantModal = ({
 
   return (
     <div className="flex justify-center items-center fixed bg-black/50 top-0 left-0 h-screen w-screen">
-      <div className="bg-white rounded-md p-4 ">
+      <div className="bg-white rounded-md p-4  ">
         <div>
           <h1 className="text-center font-bold text-lg p-4">Edit Assistant</h1>
           <div className="w-8/12 my-10">
             <div className="header flex items-center gap-3">
               <Image
-                src={`${process.env.img}/image/${assist.profile_pic}`}
+                src={`${process.env.img}/image/${assist.extraDataAccess.profile_pic}`}
                 alt="student image"
                 width={200}
                 height={200}

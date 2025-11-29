@@ -18,7 +18,7 @@ const AddStudentModal = ({ modal }) => {
         `${process.env.local}/st/teacher/${process.env.teacherId}`
       );
 
-      if (res.data.data.length > process.env.limit) {
+      if (process.env.limitStudent <= res.data.data.length) {
         setErr("limit reached for students");
       } else {
         await axios.post(`${process.env.local}/m/addUser`, {
@@ -34,7 +34,7 @@ const AddStudentModal = ({ modal }) => {
         socket.emit("add_student");
       }
     } catch (error) {
-      console.log(setErr(error.response.data.message));
+      etErr(error.response.data.message);
       setTimeout(() => {
         setErr("");
       }, 5000);
@@ -48,7 +48,6 @@ const AddStudentModal = ({ modal }) => {
         const res = await axios.get(
           `${process.env.local}/teachers/${process.env.teacherId}`
         );
-        console.log(res.data.data);
         setGradeTeacher(res.data.data.grade_levels);
       } catch (error) {
         console.log(error);

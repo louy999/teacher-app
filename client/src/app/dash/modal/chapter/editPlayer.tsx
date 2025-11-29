@@ -33,7 +33,7 @@ const EditPlayer = ({ lesson, setLesson }) => {
 
   return (
     <>
-      <div className={`cursor-pointer w-full h-[70%] mb-4`}>
+      <div className={`cursor-pointer h-[20%] md:h-[70%] mx-2 md:mx-0`}>
         <div
           onClick={() => setOpenModal(true)}
           className="text-lg font-semibold mb-2 border rounded-md p-2 bg-slate-300"
@@ -43,6 +43,7 @@ const EditPlayer = ({ lesson, setLesson }) => {
         <ReactPlayer
           url={`${lesson.video_url}`}
           controls
+          className=""
           width="100%"
           height="100%"
         />

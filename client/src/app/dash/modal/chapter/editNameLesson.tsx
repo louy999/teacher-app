@@ -89,7 +89,7 @@ const EditNameLesson = ({ lesson, setLesson }) => {
   };
   return (
     <>
-      <div className="flex  w-fit h-16 py-2 mb-3  gap-4">
+      <div className="flex flex-wrap md:flex-nowrap w-fit h-fit md:h-16 md:py-2 md:mb-3  gap-4 mx-2 md:mx-0">
         <div
           onClick={() => setOpenModal(true)}
           className="flex gap-4 items-center h-full border bg-slate-300 p-2 rounded-md mb-3  cursor-pointer hover:opacity-80 duration-300 w-fit"
@@ -109,7 +109,7 @@ const EditNameLesson = ({ lesson, setLesson }) => {
         </div>
         <div className="flex items-center gap-3">
           <div>Active:</div>
-          <div className="h-full w-full relative">
+          <div className="h-11 md:h-full w-full relative ">
             <div
               className={`flex items-center cursor-pointer hover:opacity-70 duration-300 ${
                 lesson.is_active ? "justify-start" : "justify-end"

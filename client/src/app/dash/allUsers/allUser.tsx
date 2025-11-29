@@ -76,7 +76,6 @@ const AllUser = () => {
       const res = await axios.get(
         `${process.env.local}/m/getAllUserTeacher/${process.env.teacherId}/assistants`
       );
-      console.log(res.data.data);
 
       setFetchAssistId(res.data.data);
     } catch (error) {
@@ -98,8 +97,20 @@ const AllUser = () => {
         <>
           <div className="flex px-4 py-3 justify-start gap-5 items-center">
             <h3 className="text-[#111518] text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4">
-              Students
+              Students:
             </h3>
+            <div className="flex items-center">
+              {process.env.limitStudent}/{" "}
+              <span
+                className={`${
+                  (student.length / process.env.limitStudent) * 100 >= 50
+                    ? "bg-red-300"
+                    : "bg-green-300"
+                } p-1 rounded-md`}
+              >
+                {student.length}
+              </span>
+            </div>
             <button
               onClick={() => {
                 setOpenAddStudentModal(true);
@@ -111,7 +122,7 @@ const AllUser = () => {
           </div>
 
           <div className="px-4 py-3 @container">
-            <div className="flex overflow-hidden rounded-xl border border-[#dbe1e6] bg-white">
+            <div className="flex overflow-auto rounded-xl border border-[#dbe1e6] bg-white">
               <table className="flex-1">
                 <thead>
                   <tr className="bg-white">
@@ -159,7 +170,7 @@ const AllUser = () => {
           </div>
 
           <div className="px-4 py-3 @container">
-            <div className="flex overflow-hidden rounded-xl border border-[#dbe1e6] bg-white">
+            <div className="flex overflow-auto rounded-xl border border-[#dbe1e6] bg-white">
               <table className="flex-1">
                 <thead>
                   <tr className="bg-white">
@@ -206,11 +217,11 @@ const AllUser = () => {
           </div>
 
           <div className="px-4 py-3 @container">
-            <div className="flex overflow-hidden rounded-xl border border-[#dbe1e6] bg-white">
+            <div className="flex overflow-auto rounded-xl border border-[#dbe1e6] bg-white">
               <table className="flex-1">
                 <thead>
                   <tr className="bg-white">
-                    <th className="table-560aaddd-f3c5-48f5-9f1b-d2656e304ddc-column-120 px-4 py-3 text-left text-[#111518] w-[400px] text-sm font-medium leading-normal">
+                    <th className="table-560aaddd-f3c5-48f5-9f1b-d2656e304ddc-column-120 px-4 py-3 w-fit text-left text-[#111518]  text-sm font-medium leading-normal">
                       Name
                     </th>
                     <th className="table-560aaddd-f3c5-48f5-9f1b-d2656e304ddc-column-240 px-4 py-3 text-left text-[#111518] w-[400px] text-sm font-medium leading-normal">

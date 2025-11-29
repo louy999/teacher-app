@@ -20,6 +20,7 @@ import transTeacher from './api/transTeacher.routes'
 import MultipleRoutes from './api/multiple.routes'
 import NotificationsRoutes from './api/notifications.routes'
 import TeacherSubscriptions from './api/teacherSubscription.routes'
+import TeachersAssistantRoutes from './api/teachersAssist.routes'
 
 const routes = Router()
 routes.use('/users', usersRoutes)
@@ -42,6 +43,7 @@ routes.use('/subscribe', SubscribeRoutes)
 routes.use('/trans', transTeacher)
 routes.use('/notifications', NotificationsRoutes)
 routes.use('/teacherSub', TeacherSubscriptions)
+routes.use('/teacherAssist', TeachersAssistantRoutes)
 routes.use('/m', MultipleRoutes)
 
 export default routes
