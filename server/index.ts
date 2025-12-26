@@ -27,7 +27,7 @@ app.use(
 		credentials: true,
 		optionsSuccessStatus: 200,
 		methods: '*',
-		origin: ['http://localhost:3000'],
+		origin: ['http://localhost:3000','http://192.168.1.3:3000'],
 	})
 )
 

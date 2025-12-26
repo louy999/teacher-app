@@ -92,7 +92,7 @@ const AllComments = ({ lessonId }: CommentProps) => {
                         sizes="(max-width: 768px) 100vw, 240px"
                         loading="lazy"
                       />
-                    ) : (
+                    ) : comment.file_type === "image" ? (
                       <div className="flex flex-col gap-1">
                         <p className="text-sm text-gray-600">
                           {comment.file_url}
@@ -107,7 +107,7 @@ const AllComments = ({ lessonId }: CommentProps) => {
                           Download File
                         </Link>
                       </div>
-                    )}
+                    ):""}
                     <p className="mt-3 text-gray-800 text-base whitespace-pre-line">
                       {comment.text}
                     </p>

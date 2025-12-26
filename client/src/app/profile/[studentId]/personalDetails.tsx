@@ -1,50 +1,40 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import React from "react";
 import Image from "next/image";
+import { RoleDetails, StudentDetails } from "@/types/studentDet";
+import imageIconTeacher from "../../images/graduate-hat.png";
+interface Props {
+  roleDet: RoleDetails;
+  studentDet: StudentDetails;
+}
 
-const PersonalDetails = ({ roleDet, studentDet }: any) => {
+const PersonalDetails = ({ roleDet, studentDet }: Props) => {
   return (
-    <div className="w-8/12 my-10">
-      <div className="header flex items-center gap-3">
-        <Image
-          src={`${process.env.img}/image/${studentDet.profile_pic}`}
-          alt="student image"
-          width={200}
-          height={200}
-          className="rounded-full bg-cover"
-        />
-        <div className="flex flex-col justify-center">
-          <div className="text-[#121416] text-[22px] font-bold leading-tight tracking-[-0.015em]">
-            {roleDet.full_name}
-          </div>
-          <div className="text-[#6a7681] text-base font-normal leading-normal">
+    <section className=" rounded-2xl p-6 text-white flex items-center gap-6 z-10">
+      <Image
+        src={`${process.env.img}/image/${studentDet.profile_pic}`}
+        alt="Student avatar"
+        width={1000}
+        height={1000}
+        className="w-24 h-24 md:w-48 md:h-48 rounded-full object-cover "
+      />
+
+      <div>
+        <h1 className="mb-2 text-black">{roleDet.full_name}</h1>
+        <h1 className="mb-2 text-black">{roleDet.phone}</h1>
+        <p className="opacity-90 text-xs flex justify-center items-center gap-2 text-black capitalize">
+          <span className="flex justify-center items-center ">
+            <Image
+              width={1000}
+              height={1000}
+              src={imageIconTeacher}
+              alt="Teacher Illustration"
+              className="w-5 h-auto max-w-xs"
+            />{" "}
             {roleDet.role}
-          </div>
-          <div className="text-[#6a7681] text-base font-normal leading-normal">
-            Stage: {studentDet.stage}
-          </div>
-        </div>
-      </div>
-      <h2 className="text-[#121416] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">
-        Personal Details
-      </h2>
-      <div className="p-4 grid grid-cols-[20%_1fr] gap-x-6">
-        <p className="text-[#6a7681] text-sm font-normal leading-normal">
-          Full Name
-        </p>
-        <p className="text-[#121416] text-sm font-normal leading-normal">
-          {roleDet.full_name}
+          </span>{" "}
+          · Stage {studentDet.stage}
         </p>
       </div>
-      <div className="p-4 grid grid-cols-[20%_1fr] gap-x-6">
-        <p className="text-[#6a7681] text-sm font-normal leading-normal">
-          Phone Number
-        </p>
-        <p className="text-[#121416] text-sm font-normal leading-normal">
-          {roleDet.phone}
-        </p>
-      </div>
-    </div>
+    </section>
   );
 };
 

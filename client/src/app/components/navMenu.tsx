@@ -18,9 +18,12 @@ const NavMenu: React.FC<NavMenuProps> = ({ name }) => {
       >
         {name}
       </span>
+      <div onClick={() => setOpen(false)} className={`${open ? "fixed w-screen h-screen z-30 bg-black/30 left-0 top-0" : ""}`}>
+        </div>
+
       <div
         onClick={() => setOpen(false)}
-        className={`absolute left-0 w-32 capitalize bg-white shadow-2xl rounded-md flex flex-col duration-500 p-4 gap-2 z-10 ${
+        className={`fixed  w-32 capitalize bg-white shadow-2xl rounded-md flex flex-col duration-500 p-4 gap-2 z-50 ${
           open ? "top-16" : "-top-[100vh]"
         }`}
       >

@@ -7,6 +7,7 @@ import ViewedLessons from "./viewedLessons";
 import PaidLessons from "./paidLessons";
 import AllViewsExam from "./exam/allViewsExam";
 import SubscribeTeacher from "./subscribeTeacher";
+import WavesProfile from '../../components/waves/wavesProfile';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const StudentProfilePage = async ({ params }: any) => {
@@ -30,8 +31,10 @@ const StudentProfilePage = async ({ params }: any) => {
       );
 
       return (
-        <div className="flex justify-center items-center flex-col">
-          <div className="w-8/12 px-4 flex justify-between items-center flex-wrap lg:flex-nowrap gap-4 ">
+        <div className="flex justify-center items-center flex-col bg-slate-100 p-2">
+         
+          <div className="w-11/12 lg:w-8/12 px-4 flex  justify-between items-center flex-wrap lg:flex-nowrap gap-4  relative overflow-hidden rounded-t-2xl p-6 bg-gradient-to-br from-[#EEF0FF] via-[#dddff7] to-white ">
+            <WavesProfile />
             <PersonalDetails
               roleDet={getAllDetailsUserRole.data.data}
               studentDet={infoUser.data.data}
@@ -41,8 +44,11 @@ const StudentProfilePage = async ({ params }: any) => {
               dash={false}
             />
           </div>
+            
+          <div className=" w-11/12 lg:w-8/12 flex flex-wrap lg:flex-nowrap justify-center items-start  gap-2 bg-white rounded-t-2xl relative -top-5 ">
           <ViewedLessons roleDet={getAllDetailsUserRole.data.data} />
           <PaidLessons roleDet={getAllDetailsUserRole.data.data} />
+          </div>
           <AllViewsExam roleDet={getAllDetailsUserRole.data.data} />
         </div>
       );

@@ -4,6 +4,9 @@ import React from "react";
 import axios from "axios";
 import { format } from "date-fns";
 import LessonName from "./lessonName";
+import Image from 'next/image';
+import purchasedCoursesIcon from '../../images/book.png';
+import webinarIcon from '../../images/webinar.png';
 
 const PaidLessons = async ({ roleDet }: any) => {
   try {
@@ -12,60 +15,56 @@ const PaidLessons = async ({ roleDet }: any) => {
     );
 
     return (
-      <div className="w-8/12 px-4">
-        <h2 className="text-[#121416] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">
-          Paid Lessons
-        </h2>
+      <div className="w-full  px-4">
+        <h2 className="text-[#121416] flex items-center gap-2 text-base font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">
+          <Image src={purchasedCoursesIcon} alt="Purchased Courses" width={20} height={20} />
+<span>Purchased Courses</span>      
+          <Image src={webinarIcon} alt="Purchased Courses" width={20} height={20} />
+  </h2>
         <div className="px-4 py-3 @container">
           <div className="flex overflow-hidden rounded-xl border border-[#dde1e3] bg-white">
-            <table className="flex-1">
-              <thead>
-                <tr className="bg-white">
-                  <th className="table-d88966aa-49a9-4186-883c-49d0ed6895d9-column-120 px-4 py-3 text-left text-[#121416] w-[400px] text-sm font-medium leading-normal">
-                    Lesson Title
-                  </th>
-                  <th className="table-d88966aa-49a9-4186-883c-49d0ed6895d9-column-120 px-4 py-3 text-left text-[#121416] w-[400px] text-sm font-medium leading-normal">
-                    Price
-                  </th>
-                  <th className="table-d88966aa-49a9-4186-883c-49d0ed6895d9-column-120 px-4 py-3 text-left text-[#121416] w-[400px] text-sm font-medium leading-normal">
-                    Creation Date
-                  </th>
-                  <th className="table-d88966aa-49a9-4186-883c-49d0ed6895d9-column-120 px-4 py-3 text-left text-[#121416] w-[400px] text-sm font-medium leading-normal">
-                    Expire Date
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {allSubFetch.data.data.map((sub: any, index: number) => {
-                  const dateExpire = new Date(sub.expire);
-                  const date = new Date(sub.date);
+            {allSubFetch.data.data.map((sub: any, index: number) => {
+              const dateExpire = new Date(sub.expire);
+              // const date = new Date(sub.date);
 
-                  const formattedDateExpire = isNaN(dateExpire.getTime())
-                    ? "Invalid Date"
-                    : format(dateExpire, "MMM dd, yyyy ");
-                  const formattedDateCreate = isNaN(date.getTime())
-                    ? "Invalid Date"
-                    : format(date, "MMM dd, yyyy ");
+              const formattedDateExpire = isNaN(dateExpire.getTime())
+                ? "Invalid Date"
+                : format(dateExpire, "MMM dd, yyyy ");
+              // const formattedDateCreate = isNaN(date.getTime())
+              //   ? "Invalid Date"
+              //   : format(date, "MMM dd, yyyy ");
 
-                  return (
-                    <tr className="border-t border-t-[#dde1e3]" key={index}>
-                      <td className="table-d88966aa-49a9-4186-883c-49d0ed6895d9-column-120 h-[72px] px-4 py-2 w-[400px] text-[#121416] text-sm font-normal leading-normal">
-                        <LessonName lessonId={sub.lesson_id} />
-                      </td>
-                      <td className="table-d88966aa-49a9-4186-883c-49d0ed6895d9-column-360 h-[72px] px-4 py-2 w-[400px] text-[#6a7681] text-sm font-normal leading-normal">
-                        {Number(sub.price)}L.E
-                      </td>
-                      <td className="table-d88966aa-49a9-4186-883c-49d0ed6895d9-column-360 h-[72px] px-4 py-2 w-[400px] text-[#6a7681] text-sm font-normal leading-normal">
-                        {formattedDateCreate}
-                      </td>
-                      <td className="table-d88966aa-49a9-4186-883c-49d0ed6895d9-column-360 h-[72px] px-4 py-2 w-[400px] text-[#6a7681] text-sm font-normal leading-normal">
-                        {formattedDateExpire}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+              return (
+                <div
+                  key={index}
+                  className="flex  gap-2 border-b border-r last:border-0 p-4 justify-between items-center w-full"
+                >
+                  <div>
+                    <div>
+                      <LessonName lessonId={sub.lesson_id} />
+                    </div>
+                    <div className="text-sm text-[#6e7679]">
+                      <span>Expired:</span>
+                      <span>{formattedDateExpire}</span>
+                    </div>
+                  </div>
+                  <div className="flex gap-5 items-start justify-start">
+                    <div className="font-semibold text-slate-600">
+                      {Number(sub.price)} EGP
+                    </div>
+                    <div className="">
+                      {dateExpire > new Date() ? (
+                        <span className="text-sm bg-green-400 rounded-lg p-2 text-slate-900  ">
+                          Active
+                        </span>
+                      ) : (
+                        <span className="text-sm text-red-500">Expired</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

@@ -6,14 +6,13 @@ const SubscribeTeacher = ({ studentId, dash }) => {
   const [teacherData, setTeacherData] = useState(null);
   const [openModel, setOpenModel] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
-  const [totalTime, setTotalTime] = useState(0);
 
   const addSub = async () => {
     try {
       const res = await axios.post(`${process.env.local}/trans`, {
         teacher_id: process.env.teacherId,
         student_id: studentId.id,
-        price: teacherData.teacherSub.price,
+        price: teacherData.data.teacherSub.price,
       });
       console.log(res.data.data);
     } catch (error) {
@@ -29,21 +28,17 @@ const SubscribeTeacher = ({ studentId, dash }) => {
         const res = await axios.get(
           `${process.env.local}/m/subscribeTeacher/teacher/${process.env.teacherId}/student/${studentId.id}`
         );
-
-        const data = res.data.data;
+        const data = res.data;
         setTeacherData(data);
 
-        if (!data.teacherSub || !data.trans) return;
+        if (!data.data.teacherSub || !data.data.trans) return;
 
-        const startDate = new Date(data.trans.date);
-        const expireDate = new Date(data.teacherSub.expire_date);
+        const expireDate = new Date(data.data.teacherSub.expire_date);
         const now = new Date();
 
         const diff = expireDate.getTime() - now.getTime();
-        const total = expireDate.getTime() - startDate.getTime();
 
         setTimeLeft(diff > 0 ? diff : 0);
-        setTotalTime(total > 0 ? total : 0);
 
         if (diff > 0) {
           interval = setInterval(() => {
@@ -64,9 +59,12 @@ const SubscribeTeacher = ({ studentId, dash }) => {
 
   if (timeLeft <= 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-6">
-        <p className="text-red-500 text-lg font-semibold">Subscription Ended</p>
-        {dash && (
+      <div className="bg-orange-50 text-orange-600 px-4 py-2 rounded-full flex items-center gap-2 text-sm font-bold border border-orange-100">
+        <span className="bg-orange-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+          !
+        </span>
+        <span className="text-black">Subscription Expired</span>
+        {dash && teacherData.data.teacherSub && (
           <>
             <input
               type="button"
@@ -100,10 +98,6 @@ const SubscribeTeacher = ({ studentId, dash }) => {
       </div>
     );
   } else {
-    const radius = 60;
-    const circumference = 2 * Math.PI * radius;
-    const progress = totalTime > 0 ? (timeLeft / totalTime) * circumference : 0;
-
     const formatTime = (ms) => {
       if (ms <= 0) return "0 day 0 hour 0 min 0 sec";
       const totalSeconds = Math.floor(ms / 1000);
@@ -116,42 +110,7 @@ const SubscribeTeacher = ({ studentId, dash }) => {
 
     return (
       <div className="flex flex-col items-center justify-center p-6">
-        <svg width="150" height="150" viewBox="0 0 150 150">
-          <circle
-            cx="75"
-            cy="75"
-            r={radius}
-            stroke="#e5e7eb"
-            strokeWidth="10"
-            fill="none"
-          />
-          <circle
-            cx="75"
-            cy="75"
-            r={radius}
-            stroke="#22c55e"
-            strokeWidth="10"
-            fill="none"
-            strokeDasharray={circumference}
-            strokeDashoffset={circumference - progress}
-            strokeLinecap="round"
-            transform="rotate(-90 75 75)"
-            style={{ transition: "stroke-dashoffset 1s linear" }}
-          />
-          <text
-            x="50%"
-            y="50%"
-            textAnchor="middle"
-            dy="0.3em"
-            fontSize="22"
-            fontWeight="bold"
-            fill="#16a34a"
-          >
-            {Math.floor((timeLeft / totalTime) * 100)}%
-          </text>
-        </svg>
-
-        <p className="mt-4 text-gray-700 font-medium text-center">
+        <p className="mt-4 bg-green-400 font-medium text-slate-700 p-2 rounded-md text-center">
           {formatTime(timeLeft)}
         </p>
       </div>

@@ -267,7 +267,7 @@ const ExamPage: React.FC = () => {
   if (!currentQuestion) return <div className="p-4">No questions found.</div>;
 
   return (
-    <div className="max-w-xl mx-auto mt-10 bg-white  ">
+    <div className="max-w-xl mx-auto mt-10 bg-white  p-4 ">
       {/* Stepper */}
       <div className="flex justify-center mb-6 space-x-4">
         {examData.map((q, idx) => {
