@@ -1,134 +1,115 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import ReactPlayer from "react-player";
 import axios from "axios";
+import { Loader2 } from "lucide-react"; // أيقونة تحميل أرقى
 
 interface Props {
   videoUrl: string;
-  lessonId: number;
-  studentId: number;
+  lessonId: string; // تم تغييرها لـ string لتناسب الـ UUID في قاعدة بياناتك
+  studentId: string;
 }
 
 const LessonPlayer: React.FC<Props> = ({ videoUrl, lessonId, studentId }) => {
-  const cleanUrl = videoUrl?.split("&")[0];
   const playerRef = useRef<ReactPlayer>(null);
-
-  const [startSeconds, setStartSeconds] = useState(0);
   const [isReady, setIsReady] = useState(false);
+  const [hasSeeked, setHasSeeked] = useState(false);
+  const [duration, setDuration] = useState(0);
+  const [lastSavedTime, setLastSavedTime] = useState(0);
 
-  const [videoDuration, setVideoDuration] = useState(0);
-  const [lastRecordedProgress, setLastRecordedProgress] = useState(0);
-  const RECORDING_INTERVAL = 60 * 3;
+  // 1. استخراج الـ URL النظيف
+  const cleanUrl = React.useMemo(() => videoUrl?.split("&")[0], [videoUrl]);
 
+  // 2. دالة الحفظ (تم تحسينها لتقليل طلبات الـ GET الزائدة)
+  const saveProgress = useCallback(async (currentTime: number, videoDuration: number) => {
+    if (videoDuration <= 0) return;
+
+    const progressPercent = Math.min(100, Math.floor((currentTime / videoDuration) * 100));
+    
+    try {
+      // نصيحة: يفضل أن يكون للسيرفر Endpoint واحد للـ Upsert (Update or Create) 
+      // لتجنب عمل طلبين (GET ثم POST)
+      await axios.post(`${process.env.local}/views`, {
+        lesson_id: lessonId,
+        student_id: studentId,
+        progress: progressPercent,
+        current_time: Math.floor(currentTime),
+      });
+      
+      setLastSavedTime(currentTime);
+    } catch (error) {
+      console.error("Failed to save progress:", error);
+    }
+  }, [lessonId, studentId]);
+
+  // 3. جلب آخر نقطة توقف عند البداية
   useEffect(() => {
-    const fetchLastTime = async () => {
+    const initPlayer = async () => {
       try {
-        const response = await axios.get(
+        const { data } = await axios.get(
           `${process.env.local}/views/lesson/${lessonId}/student/${studentId}`
         );
-        const viewData = response.data.data;
-
-        if (viewData?.current_time) {
-          setStartSeconds(viewData.current_time);
-          setLastRecordedProgress(viewData.current_time);
+        if (data.data?.current_time) {
+          setLastSavedTime(data.data.current_time);
         }
-
-        setIsReady(true);
-      } catch (error) {
-        console.error("Error fetching last time:", error);
+      } catch (err) {
+        console.error("Fetch error:", err);
+      } finally {
         setIsReady(true);
       }
     };
-
-    fetchLastTime();
+    initPlayer();
   }, [lessonId, studentId]);
 
-  const recordProgress = async (currentSeconds: number) => {
-    const progressPercentage =
-      videoDuration > 0
-        ? Math.min(100, Math.floor((currentSeconds / videoDuration) * 100))
-        : 0;
-
-    if (progressPercentage === 0) return;
-
-    try {
-      const checkResponse = await axios.get(
-        `${process.env.local}/views/lesson/${lessonId}/student/${studentId}`
-      );
-      const viewData = checkResponse.data.data;
-
-      let res;
-      if (viewData?.id) {
-        res = await axios.patch(`${process.env.local}/views`, {
-          id: viewData.id,
-          progress: progressPercentage,
-          current_time: currentSeconds,
-        });
-      } else {
-        res = await axios.post(`${process.env.local}/views`, {
-          lesson_id: lessonId,
-          student_id: studentId,
-          progress: progressPercentage,
-          current_time: currentSeconds,
-        });
-      }
-
-      console.log("Progress recorded:", res.data.data);
-      setLastRecordedProgress(currentSeconds);
-    } catch (error) {
-      console.error("Error recording progress:", error);
+  // 4. معالجة القفز لآخر وقت (Seek) عند جاهزية الفيديو
+  const handleOnReady = () => {
+    if (!hasSeeked && lastSavedTime > 0) {
+      playerRef.current?.seekTo(lastSavedTime, "seconds");
+      setHasSeeked(true);
     }
   };
 
-  const handleProgress = (state: {
-    playedSeconds: number;
-    played: number;
-    loaded: number;
-    loadedSeconds: number;
-  }) => {
-    const currentSeconds = Math.floor(state.playedSeconds);
-    const timeSinceLastRecord = currentSeconds - lastRecordedProgress;
-
-    if (timeSinceLastRecord >= RECORDING_INTERVAL) {
-      recordProgress(currentSeconds);
+  const handleProgress = (state: { playedSeconds: number }) => {
+    const currentTime = Math.floor(state.playedSeconds);
+    // حفظ كل دقيقة (60 ثانية) بدلاً من 3 دقائق لضمان عدم ضياع التقدم
+    if (currentTime - lastSavedTime >= 60) {
+      saveProgress(currentTime, duration);
     }
-  };
-
-  const handleDuration = (duration: number) => {
-    setVideoDuration(duration);
-  };
-
-  const handleEnded = () => {
-    recordProgress(videoDuration);
-    console.log("Video ended. 100% progress recorded.");
   };
 
   if (!isReady) {
     return (
-      <div className="p-8 text-center text-gray-500">loading lesson...</div>
+      <div className="relative w-full pb-[56.25%] bg-slate-900 rounded-[2rem] flex items-center justify-center">
+        <Loader2 className="text-indigo-500 animate-spin" size={40} />
+      </div>
     );
   }
 
   return (
-    <div className="relative w-full pb-[56.25%] rounded-xl overflow-hidden shadow-md">
+    <div className="relative w-full pb-[56.25%] rounded-[2rem] overflow-hidden shadow-2xl bg-black group">
       <ReactPlayer
         ref={playerRef}
         url={cleanUrl}
         width="100%"
         height="100%"
         controls
+        onReady={handleOnReady}
         onProgress={handleProgress}
-        onDuration={handleDuration}
-        onEnded={handleEnded}
+        onDuration={(d) => setDuration(d)}
+        onEnded={() => saveProgress(duration, duration)}
         config={{
           youtube: {
             playerVars: {
-              start: startSeconds,
+              rel: 0, // منع اقتراح فيديوهات أخرى
+              modestbranding: 1,
             },
           },
         }}
         style={{ position: "absolute", top: 0, left: 0 }}
       />
+      
+      {/* طبقة حماية بسيطة لمنع التحميل (اختياري) */}
+      <div className="absolute inset-0 pointer-events-none border-[12px] border-white/5 rounded-[2rem]" />
     </div>
   );
 };

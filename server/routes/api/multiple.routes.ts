@@ -15,6 +15,8 @@ import ReplayModel from '../../models/replay.model'
 import TeacherSubscriptionsModal from '../../models/teacherSubscription.modal'
 import ParentsStudentsModel from '../../models/ParentsStudents.model'
 import TeachersAssistModel from '../../models/teachersAssist.model'
+import FilesModel from '../../models/files.model'
+import ExamsModel from '../../models/exams.model';
 const usersModel = new UsersModel()
 const teachersModel = new TeachersModel()
 const studentsModel = new StudentsModel()
@@ -31,6 +33,8 @@ const replayModel = new ReplayModel()
 const teacherSubscriptionsModal = new TeacherSubscriptionsModal()
 const parentsStudentsModel = new ParentsStudentsModel()
 const teachersAssistModel = new TeachersAssistModel()
+const filesModel = new FilesModel()
+const examsModel = new ExamsModel()
 
 const routes = Router()
 //add mutable users
@@ -126,7 +130,6 @@ routes.post('/addUser', async (req: Request, res: Response, next) => {
 		next(err)
 	}
 })
-
 // subscription users
 routes.get(
 	'/subscribeTeacher/teacher/:teacher/student/:student',
@@ -161,7 +164,6 @@ routes.get(
 		}
 	}
 )
-
 // get chapters with lessons and views for a student under a teacher and stage
 routes.get(
 	'/chapterLesson/teacher/:teacherId/stage/:stage/student/:student',
@@ -198,6 +200,31 @@ routes.get(
 
 			res.json({
 				chapters: chaptersWithLessonsAndViews,
+			})
+		} catch (err) {
+			next(err)
+		}
+	}
+)
+//get all lesson and about lesson (files-subscribtion)
+routes.get(
+	'/allLesson/lesson/:lessonId/student/:studentId',
+	async (req: Request, res: Response, next) => {
+		try {
+			const {lessonId, studentId} = req.params
+			const lesson = await lessonsModel.getOne(lessonId as unknown as string)
+			const file = await filesModel.getByLessonId(lessonId as unknown as string)
+			const subscribe = await subscribeModel.getByStudentId(
+				studentId as unknown as string
+			)
+			const exam = await examsModel.getByLessonId(
+			lessonId as unknown as string
+		)
+
+			res.json({
+				status: 'success',
+				data: {...lesson, file, subscribe,exam},
+				message: 'comments with users fetched successfully',
 			})
 		} catch (err) {
 			next(err)
@@ -400,15 +427,15 @@ routes.get(
 						access === 'assistants'
 							? u.assistant_id
 							: access === 'students'
-							? u.student_id
-							: u.parent_id
+								? u.student_id
+								: u.parent_id
 					)
 					const extraDataAccess =
 						access === 'assistants'
 							? await assistantsModel.getOne(u.assistant_id)
 							: access === 'students'
-							? await studentsModel.getOne(u.student_id)
-							: await parentsModel.getOne(u.parent_id)
+								? await studentsModel.getOne(u.student_id)
+								: await parentsModel.getOne(u.parent_id)
 
 					return {...u, extraDataUser, extraDataAccess} // merge single user with their extra data
 				})

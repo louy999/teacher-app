@@ -12,6 +12,9 @@ const {
 	BCRYPT_PASSWORD,
 	SALT_ROUNDS,
 	TOKEN_SECRET,
+	CLOUDINARY_CLOUD_NAME,
+	CLOUDINARY_API_KEY,
+	CLOUDINARY_API_SECRET,
 } = process.env
 export default {
 	port: PORT,
@@ -23,4 +26,7 @@ export default {
 	pepper: BCRYPT_PASSWORD,
 	salt: SALT_ROUNDS,
 	tokenSecret: TOKEN_SECRET,
+	cloudName: CLOUDINARY_CLOUD_NAME,
+	apiKey: CLOUDINARY_API_KEY,
+	apiSecret: CLOUDINARY_API_SECRET,
 }

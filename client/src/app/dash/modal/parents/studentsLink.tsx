@@ -6,7 +6,7 @@ import { IoMdArrowRoundBack } from "react-icons/io";
 import InfoStudent from "../students/infoStudent";
 import ViewedLessonsDash from "../students/viewdLesson";
 import PaidLessonsDash from "../students/paidLessons";
-import AllViewsExam from "../../../profile/[studentId]/exam/allViewsExam";
+// import AllViewsExam from "../../../profile/[studentId]/exam/allViewsExam";
 
 const StudentsLink = ({ studentId }) => {
   const [roleDet, setRoleDet] = useState({});
@@ -18,7 +18,7 @@ const StudentsLink = ({ studentId }) => {
     const fetchStudentDetails = async () => {
       try {
         const res = await axios.get(
-          `${process.env.local}/students/${studentId}`
+          `${process.env.local}/students/${studentId}`,
         );
         setStudentDet(res.data.data);
         const studentDetails = await axios.get(
@@ -27,7 +27,7 @@ const StudentsLink = ({ studentId }) => {
             headers: {
               Authorization: `${getCookie("dataRoleToken")}`,
             },
-          }
+          },
         );
 
         setRoleDet(studentDetails.data.data);
@@ -62,7 +62,7 @@ const StudentsLink = ({ studentId }) => {
                 <InfoStudent roleDet={roleDet} studentDet={studentDet} />
                 <PaidLessonsDash roleDet={roleDet} studentDet={studentDet} />
                 <ViewedLessonsDash roleDet={roleDet} />
-                <AllViewsExam roleDet={roleDet} />
+                {/* <AllViewsExam roleDet={roleDet} /> */}
               </div>
             </div>
           </div>

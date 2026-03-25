@@ -11,9 +11,8 @@ import http from 'http'
 import config from './config'
 import errorHandelMiddleware from './middleware/error.handel.middleware'
 import routes from './routes'
-import upload from './upload/uploadImg'
-import sendMail from './send_email/index'
-import uploadFile from './upload/uploadFile'
+import { uploadImg, uploadFile } from './upload/cloudinaryConfig'; 
+
 
 const app: Application = express()
 const port = config.port || 3000
@@ -27,7 +26,7 @@ app.use(
 		credentials: true,
 		optionsSuccessStatus: 200,
 		methods: '*',
-		origin: ['http://localhost:3000','http://192.168.1.3:3000'],
+		origin: ['http://localhost:3000', 'http://192.168.1.5:3000'],
 	})
 )
 
@@ -38,36 +37,33 @@ app.get('/healthz', (_req: Request, res: Response) => {
 	res.send({status: 'ok✌️'})
 })
 
-app.post('/upload/image', upload.single('image'), (req: any, res) => {
-	const fileName = req.file?.filename
-	res.send(fileName)
-})
-app.post(
-	'/upload/file',
-	uploadFile.single('file'),
-	(req: any, res: Response) => {
-		const fileName = req.file?.filename
-		res.send(fileName)
-	}
-)
+app.post('/upload/images', uploadImg.array('images', 5), (req: Request, res: Response): void => {
+    try {
+        const files = req.files as Express.Multer.File[];
+        
+        if (!files || files.length === 0) {
+            res.status(400).send({ message: 'No images uploaded' });
+            return; 
+        }
+
+        const imageUrls = files.map(file => file.path);
+
+        res.status(200).send({
+            message: 'Images uploaded successfully',
+            urls: imageUrls 
+        });
+    } catch (error) {
+        res.status(500).send({ message: 'Upload failed', error });
+    }
+});
+app.post('/upload/file', uploadFile.single('file'), (req: Request, res: Response): void => {
+    const fileUrl = req.file?.path;
+    res.send({ url: fileUrl });
+});
+
 app.use('/upload', express.static('uploads'))
 
-app.get('/image/:filename', (req, res) => {
-	const {filename} = req.params
-	res.sendFile(req.params.filename, {
-		root: path.join(__dirname, '/uploads/image'),
-	})
-})
 
-app.get('/file/:filename', (req, res) => {
-	const {filename} = req.params
-	res.sendFile(req.params.filename, {
-		root: path.join(__dirname, '/uploads/file'),
-	})
-})
-app.post('/ver', (req: Request, res: Response) => {
-	sendMail(req.body.email, req.body.username), res.json({message: 'Email send'})
-})
 
 const server = http.createServer(app)
 const io = new Server(server, {
@@ -101,8 +97,13 @@ io.on('connection', (socket) => {
 		console.log('🔌 Disconnected socket id:', socket.id)
 	})
 })
+
+app.use((req, res, next) => {
+	const error: any = new Error(`Not Found - ${req.originalUrl}`)
+	error.status = 404
+	next(error)
+})
+app.use(errorHandelMiddleware)
 server.listen(port, () => {
 	console.log(`server is start with port :${port}`)
 })
-
-app.use(errorHandelMiddleware)

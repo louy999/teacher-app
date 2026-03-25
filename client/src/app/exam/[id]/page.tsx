@@ -1,404 +1,180 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import axios from "axios";
-import Image from "next/image";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronLeft, ChevronRight,  Timer, Award, RotateCcw, } from "lucide-react";
+import QuestionCard from "./QuestionCard";
+import ExamResults from "./ExamResults";
+import ExamStepper from "./ExamStepper";
 
-interface Question {
-  id: string;
-  question: string;
-  answers: string[];
-  correct_answer: string;
-  time: string;
-  notes?: string;
-  file_url?: string;
-  file_type?: string;
-  date?: string;
-  exams_id?: string;
-}
-
-const ExamPage: React.FC = () => {
+const ExamPage = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const student_id = searchParams.get("studentId");
   const lessonId = searchParams.get("lessonId");
+  const examId = pathname.split("/")[2];
 
-  const [examData, setExamData] = useState<Question[]>([]);
-  const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const [examData, setExamData] = useState<any[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [timeMap, setTimeMap] = useState<Record<number, number>>({});
   const [answers, setAnswers] = useState<Record<number, string>>({});
-  const [loading, setLoading] = useState<boolean>(false);
-  const [isFinished, setIsFinished] = useState<boolean>(false);
-  useEffect(() => {}, []);
+  const [loading, setLoading] = useState(true);
+  const [isFinished, setIsFinished] = useState(false);
+  const [direction, setDirection] = useState(0); 
+
+  // 1. Fetch Exam & Check Previous Submission
   useEffect(() => {
-    const fetchData = async (): Promise<void> => {
+    const initExam = async () => {
       try {
         setLoading(true);
-        const response = await axios.get<{ data: Question[] }>(
-          `${process.env.local}/qa/exam/${pathname.split("/")[2]}`
-        );
-        const data = response.data.data;
-        const initialTimes: Record<number, number> = {};
-        data.forEach((q, index) => {
-          initialTimes[index] = parseInt(q.time) * 60;
-        });
+        const [examRes, ansRes] = await Promise.all([
+          axios.get(`${process.env.local}/qa/exam/${examId}`),
+          axios.get(`${process.env.local}/answers/student/${student_id}/exam/${examId}`)
+        ]);
+
+        const data = examRes.data.data;
         setExamData(data);
+
+        const initialTimes: any = {};
+        data.forEach((q: any, i: number) => initialTimes[i] = parseInt(q.time) * 60);
         setTimeMap(initialTimes);
-      } catch (error) {
-        console.error("Failed to fetch exam data", error);
-      } finally {
-        setLoading(false);
-      }
-    };
 
-    fetchData();
-  }, [pathname]);
-
-  useEffect(() => {
-    if (isFinished) return;
-    const timer = setInterval(() => {
-      setTimeMap((prev) => {
-        const updated = { ...prev };
-        if (updated[currentIndex] > 0) updated[currentIndex]--;
-        return updated;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [currentIndex, isFinished]);
-
-  const currentQuestion: Question | undefined = examData[currentIndex];
-
-  const handleSelect = (ans: string): void => {
-    if (!currentQuestion || isFinished) return;
-    if (timeMap[currentIndex] <= 0) return;
-    setAnswers((prev) => ({ ...prev, [currentIndex]: ans }));
-  };
-  useEffect(() => {
-    const ifDoneExam = async () => {
-      try {
-        const examId = pathname.split("/")[2];
-        const res = await axios.get(
-          `${process.env.local}/answers/student/${student_id}/exam/${examId}`
-        );
-
-        const previousAnswers = res.data.data;
-
-        if (previousAnswers.length > 0) {
-          const loadedAnswers: Record<number, string> = {};
-
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          previousAnswers.forEach((ansItem: any) => {
-            const questionIndex = examData.findIndex(
-              (q) => q.id === ansItem.question_id
-            );
-            if (questionIndex !== -1) {
-              loadedAnswers[questionIndex] = ansItem.answer;
-            }
+        if (ansRes.data.data.length > 0) {
+          const loadedAns: any = {};
+          ansRes.data.data.forEach((item: any) => {
+            const idx = data.findIndex((q: any) => q.id === item.question_id);
+            if (idx !== -1) loadedAns[idx] = item.answer;
           });
-
-          setAnswers(loadedAnswers);
+          setAnswers(loadedAns);
           setIsFinished(true);
         }
-      } catch (error) {
-        console.log("Error checking exam completion", error);
-      }
+      } catch (err) { console.error(err); }
+      finally { setLoading(false); }
     };
+    initExam();
+  }, [examId, student_id]);
 
-    if (examData.length > 0 && student_id) {
-      ifDoneExam();
-    }
-  }, [examData, student_id, pathname]);
+  // 2. Timer Logic
+  useEffect(() => {
+    if (isFinished || loading || !examData[currentIndex]) return;
+    const timer = setInterval(() => {
+      setTimeMap(prev => {
+        if (prev[currentIndex] <= 0) return prev;
+        return { ...prev, [currentIndex]: prev[currentIndex] - 1 };
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [currentIndex, isFinished, loading, examData]);
 
-  const handleNext = (): void => {
-    if (currentIndex < examData.length - 1) {
-      setCurrentIndex((prev) => prev + 1);
-    }
+  // 3. Handlers
+  const handleSelect = (ans: string) => {
+    if (isFinished || timeMap[currentIndex] <= 0) return;
+    setAnswers(prev => ({ ...prev, [currentIndex]: ans }));
   };
 
-  const handlePrev = (): void => {
-    if (currentIndex > 0) {
-      setCurrentIndex((prev) => prev - 1);
-    }
+  const navigate = (newIndex: number) => {
+    setDirection(newIndex > currentIndex ? 1 : -1);
+    setCurrentIndex(newIndex);
   };
 
-  const handleFinish = async (): Promise<void> => {
+  const submitExam = async () => {
     setIsFinished(true);
-
-    if (!student_id) {
-      console.error("Missing student_id");
-      return;
-    }
-
     try {
-      for (let i = 0; i < examData.length; i++) {
-        const q = examData[i];
+      const requests = examData.map((q, i) => {
         const userAnswer = answers[i] ?? "";
         const isCorrect = userAnswer === q.correct_answer;
-        const marks = isCorrect ? 1 : 0;
-        const examId = pathname.split("/")[2];
-        const payload = {
+        return axios.post(`${process.env.local}/answers`, {
           student_id,
           question_id: q.id,
           exams_id: examId,
           answer: userAnswer,
           is_correct: isCorrect,
-          marks,
-        };
-
-        await axios.post(`${process.env.local}/answers`, payload);
-      }
-
-      console.log("All answers submitted successfully");
-    } catch (error) {
-      console.error("Error submitting answers", error);
-    }
+          marks: isCorrect ? 1 : 0,
+        });
+      });
+      await Promise.all(requests);
+    } catch (err) { console.error(err); }
   };
 
-  const formatTime = (sec: number): string => {
-    const min = Math.floor(sec / 60)
-      .toString()
-      .padStart(2, "0");
-    const s = (sec % 60).toString().padStart(2, "0");
-    return `${min}:${s}`;
-  };
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }} className="p-4 bg-white rounded-full shadow-xl">
+        <RotateCcw className="text-indigo-600" size={32} />
+      </motion.div>
+    </div>
+  );
 
-  if (loading) return <div className="p-4">Loading...</div>;
-
-  if (isFinished) {
-    const total = examData.length;
-    let correct = 0;
-
-    examData.forEach((q, i) => {
-      if (answers[i] === q.correct_answer) correct++;
-    });
-
-    const incorrect = total - correct;
-    const percentage = Math.round((correct / total) * 100);
-
-    return (
-      <div className="max-w-4xl mx-auto mt-10 p-6 bg-white rounded shadow">
-        <h2 className="text-2xl font-bold mb-6">Final Exam Results</h2>
-
-        <section className="mb-6">
-          <h3 className="text-lg font-semibold mb-3">Student Performance</h3>
-
-          <div className="flex justify-between items-center mb-2">
-            <div className="text-xl font-semibold">{percentage}%</div>
-          </div>
-
-          <div className="w-full h-4 bg-gray-200 rounded-full overflow-hidden mb-4">
-            <div
-              className="h-full bg-blue-600 transition-all duration-500"
-              style={{ width: `${percentage}%` }}
-            />
-          </div>
-
-          <div className="flex gap-6 mb-6">
-            <div className="flex-1 p-4 bg-gray-50 border rounded">
-              <p className="text-sm text-gray-600">Correct Answers</p>
-              <p className="mt-1 text-2xl font-bold text-green-700">
-                {correct}
-              </p>
-            </div>
-            <div className="flex-1 p-4 bg-gray-50 border rounded">
-              <p className="text-sm text-gray-600">Incorrect Answers</p>
-              <p className="mt-1 text-2xl font-bold text-red-700">
-                {incorrect}
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <section>
-          <h3 className="text-lg font-semibold mb-3">Answer Breakdown</h3>
-
-          <table className="w-full border-collapse border border-gray-300 rounded-md">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="p-2 border border-gray-300 text-left">
-                  Question
-                </th>
-                <th className="p-2 border border-gray-300 text-left">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {examData.map((q, i) => {
-                const userAnswer = answers[i];
-                const isCorrect = userAnswer === q.correct_answer;
-
-                return (
-                  <tr key={q.id} className="border-t border-gray-300">
-                    <td className="p-2 border border-gray-300">
-                      Question {i + 1}
-                    </td>
-                    <td className="p-2 border border-gray-300">
-                      <span
-                        className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
-                          isCorrect
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
-                      >
-                        {isCorrect ? "Correct" : "Incorrect"}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </section>
-
-        <div className="mt-8 text-center">
-          <button
-            onClick={() => {
-              window.location.href = `/lesson/${lessonId}`;
-            }}
-            className="px-6 py-3 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-          >
-            Back to Home
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!currentQuestion) return <div className="p-4">No questions found.</div>;
+  if (isFinished) return <ExamResults examData={examData} answers={answers} lessonId={lessonId} />;
 
   return (
-    <div className="max-w-xl mx-auto mt-10 bg-white  p-4 ">
-      {/* Stepper */}
-      <div className="flex justify-center mb-6 space-x-4">
-        {examData.map((q, idx) => {
-          const isActive = idx === currentIndex;
-          const isCompleted = idx < currentIndex;
-          return (
-            <div key={q.id} className="flex items-center">
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
-                  isCompleted
-                    ? "bg-green-600 border-green-600 text-white"
-                    : isActive
-                    ? "bg-black border-black text-white"
-                    : "bg-white border-gray-300 text-gray-500"
-                }`}
-              >
-                {isCompleted ? (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={3}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                ) : (
-                  idx + 1
-                )}
-              </div>
-              {idx !== examData.length - 1 && (
-                <div
-                  className={`w-10 h-1 ${
-                    isCompleted ? "bg-green-600" : "bg-gray-300"
-                  }`}
-                ></div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+    <div className="min-h-screen bg-[#F8FAFC] py-10 px-4">
+      <div className="max-w-3xl mx-auto">
+        
+        {/* Header Section */}
+        <div className="mb-8 flex items-center justify-between bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
+           <ExamStepper total={examData.length} current={currentIndex} answers={answers} />
+           <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-600 rounded-2xl font-bold border border-amber-100">
+              <Timer size={18} />
+              <span className="tabular-nums">
+                {Math.floor(timeMap[currentIndex] / 60)}:{(timeMap[currentIndex] % 60).toString().padStart(2, "0")}
+              </span>
+           </div>
+        </div>
 
-      {/* Question Header */}
-
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-md font-semibold">
-          Question {currentIndex + 1} of {examData.length}
-        </h2>
-        <span className="text-sm text-gray-600">
-          Time Left: {formatTime(timeMap[currentIndex])}
-        </span>
-      </div>
-
-      {/* Question Text */}
-      {currentQuestion.file_url && currentQuestion.file_type && (
-        <Image
-          src={`${process.env.img}/image/${currentQuestion.file_url}`}
-          alt="Question Image"
-          width={300}
-          height={300}
-          priority
-          className="flex items-center gap-3 transition"
-        />
-      )}
-      <p className="mb-4 text-gray-800">{currentQuestion.question}</p>
-
-      {/* Options */}
-      <div className="space-y-3 mb-6">
-        {currentQuestion.answers.map((ans, i) => {
-          const isSelected = answers[currentIndex] === ans;
-          return (
-            <label
-              key={i}
-              className={`flex items-center p-3 border rounded cursor-pointer ${
-                isSelected ? "bg-blue-50 border-blue-600" : "border-gray-300"
-              }`}
+        {/* Question Container */}
+        <div className="relative overflow-hidden min-h-[500px]">
+          <AnimatePresence mode="wait" custom={direction}>
+            <motion.div
+              key={currentIndex}
+              custom={direction}
+              initial={{ opacity: 0, x: direction * 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: direction * -50 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
             >
-              <input
-                type="radio"
-                name={`question-${currentIndex}`}
-                value={ans}
-                checked={isSelected}
-                onChange={() => handleSelect(ans)}
-                className="form-radio text-blue-600 h-5 w-5"
+              <QuestionCard 
+                question={examData[currentIndex]} 
+                index={currentIndex} 
+                selectedAnswer={answers[currentIndex]} 
+                onSelect={handleSelect} 
+                isTimeUp={timeMap[currentIndex] <= 0}
               />
-              <span className="ml-3 text-gray-900">{ans}</span>
-            </label>
-          );
-        })}
-      </div>
-      <div>
-        {currentQuestion.notes && (
-          <div className="p-4 bg-gray-100 rounded-md mb-4">
-            <h3 className="text-sm font-semibold mb-2">Notes:</h3>
-            <p className="text-sm text-gray-700">{currentQuestion.notes}</p>
-          </div>
-        )}
-      </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
 
-      {/* Navigation Buttons */}
-      <div className="flex justify-between items-center">
-        <button
-          onClick={handlePrev}
-          disabled={currentIndex === 0}
-          className="bg-gray-200 text-gray-700 py-2 px-4 rounded disabled:opacity-50"
-        >
-          Previous
-        </button>
+        {/* Navigation */}
+        <div className="mt-8 flex justify-between items-center gap-4">
+          <button
+            onClick={() => navigate(currentIndex - 1)}
+            disabled={currentIndex === 0}
+            className="flex items-center gap-2 px-6 py-3 bg-white text-slate-600 font-bold rounded-2xl border border-slate-200 disabled:opacity-30 hover:bg-slate-50 transition-all"
+          >
+            <ChevronLeft size={20} /> Previous
+          </button>
 
-        {currentIndex === examData.length - 1 ? (
-          <button
-            onClick={handleFinish}
-            className="bg-blue-600 text-white py-2 px-4 rounded"
-            disabled={!answers[currentIndex]}
-          >
-            Finish
-          </button>
-        ) : (
-          <button
-            onClick={handleNext}
-            disabled={!answers[currentIndex]}
-            className="bg-blue-600 text-white py-2 px-4 rounded disabled:opacity-50"
-          >
-            Next Question
-          </button>
-        )}
+          {currentIndex === examData.length - 1 ? (
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={submitExam}
+              disabled={!answers[currentIndex]}
+              className="flex items-center gap-2 px-10 py-3 bg-indigo-600 text-white font-bold rounded-2xl shadow-lg shadow-indigo-200 disabled:bg-slate-300"
+            >
+              Submit Exam <Award size={20} />
+            </motion.button>
+          ) : (
+            <button
+              onClick={() => navigate(currentIndex + 1)}
+              disabled={!answers[currentIndex]}
+              className="flex items-center gap-2 px-10 py-3 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 disabled:opacity-30 transition-all"
+            >
+              Next <ChevronRight size={20} />
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

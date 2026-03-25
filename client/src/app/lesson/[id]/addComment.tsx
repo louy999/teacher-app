@@ -6,22 +6,12 @@ import Image from "next/image";
 import { jwtVerify } from "jose";
 import { getCookie } from "cookies-next/client";
 import socket from "../../lib/socket";
+import { motion, AnimatePresence } from "framer-motion";
+import { Send, X, Paperclip, Loader2 } from "lucide-react";
 
 interface AddCommentProps {
   lessonId: string;
   studentId: string;
-}
-
-interface UserPayload {
-  user: {
-    full_name: string;
-  };
-}
-
-interface StudentPayload {
-  student: {
-    profile_pic: string;
-  };
 }
 
 const AddComment: React.FC<AddCommentProps> = ({ lessonId, studentId }) => {
@@ -31,6 +21,7 @@ const AddComment: React.FC<AddCommentProps> = ({ lessonId, studentId }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [nameUser, setNameUser] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const userDe = getCookie("UserDe");
   const dataRoleToken = getCookie("dataRoleToken");
@@ -38,45 +29,15 @@ const AddComment: React.FC<AddCommentProps> = ({ lessonId, studentId }) => {
   useEffect(() => {
     const validationUserToken = async () => {
       try {
-        if (!dataRoleToken || !userDe) {
-          throw new Error("Missing token data");
-        }
+        if (!dataRoleToken || !userDe) return;
+        const secret = new TextEncoder().encode(process.env.TOKEN_SECRET);
+        
+        const userToken: any = await jwtVerify(dataRoleToken as string, secret);
+        const StudentToken: any = await jwtVerify(userDe as string, secret);
 
-        // JWT validation
-        const userToken = await jwtVerify(
-          dataRoleToken as string,
-          new TextEncoder().encode(process.env.TOKEN_SECRET)
-        );
-        const StudentToken = await jwtVerify(
-          userDe as string,
-          new TextEncoder().encode(process.env.TOKEN_SECRET)
-        );
-
-        // Type assertion to `unknown` first, then to `UserPayload`
-        const userPayload = userToken.payload as unknown as UserPayload;
-        // console.log(userPayload);
-
-        // Ensure the required `user` property exists in the payload
-        if (!userPayload.user) {
-          throw new Error("User data is missing in the token");
-        }
-
-        // Type assertion to `unknown` first, then to `StudentPayload`
-        const studentPayload =
-          StudentToken.payload as unknown as StudentPayload;
-        // console.log(studentPayload.roleData);
-
-        // Ensure the required `student` property exists
-        if (!studentPayload.roleData) {
-          throw new Error("Student data is missing in the token");
-        }
-
-        setNameUser(userPayload.user.full_name); // No more type errors
-
-        setImageSrc(studentPayload.roleData.profile_pic); // No more type errors
-      } catch (error) {
-        console.log(error);
-      }
+        setNameUser(userToken.payload.user.full_name || "Student");
+        setImageSrc(StudentToken.payload.roleData.profile_pic);
+      } catch (error) { console.error("Token Validation Error", error); }
     };
     validationUserToken();
   }, [dataRoleToken, userDe]);
@@ -85,124 +46,162 @@ const AddComment: React.FC<AddCommentProps> = ({ lessonId, studentId }) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
+      setPreviewUrl(selectedFile.type.startsWith("image/") ? URL.createObjectURL(selectedFile) : null);
     }
   };
 
+  const removeFile = () => {
+    setFile(null);
+    setPreviewUrl(null);
+  };
+
   const addCommentHandel = async () => {
-    if (textInput) {
-      setIsSubmitting(true);
-      try {
-        if (file) {
-          const formData = new FormData();
-          formData.append(
-            file.type.split("/")[0] === "image" ? "image" : "file",
-            file
-          );
-
-          const fetchFile = await axios.post(
-            `${process.env.img}/upload/${
-              file.type.split("/")[0] === "image" ? "image" : "file"
-            }`,
-            formData,
-            {
-              headers: {
-                "Content-Type": "multipart/form-data",
-              },
-            }
-          );
-
-          await axios.post(`${process.env.local}/comments`, {
-            text: textInput,
-            user_id: studentId,
-            lesson_id: lessonId,
-            file_url: fetchFile.data,
-            file_type: file.type.split("/")[0] === "image" ? "image" : "file",
-            shown: false,
-          });
-          socket.emit("add_comment");
-        } else {
-          await axios.post(`${process.env.local}/comments`, {
-            text: textInput,
-            user_id: studentId,
-            lesson_id: lessonId,
-            file_url: "",
-            file_type: "",
-            shown: false,
-          });
-          socket.emit("add_comment");
-        }
-      } catch (error) {
-        console.log(error);
-      } finally {
-        setIsSubmitting(false);
-        setTextInput("");
-        setFile(null);
-      }
-    } else {
+    if (!textInput.trim()) {
       setErrText(true);
-      setTimeout(() => {
-        setErrText(false);
-      }, 5000);
+      setTimeout(() => setErrText(false), 3000);
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      let finalFileUrl = "";
+      let finalFileType = "";
+
+      if (file) {
+        const formData = new FormData();
+        const isImage = file.type.startsWith("image/");
+        
+        // ربط الـ Field Name بما يتوقعه السيرفر (images للصور و file للملفات)
+        if (isImage) {
+          formData.append("images", file);
+        } else {
+          formData.append("file", file);
+        }
+
+        const uploadEndpoint = isImage ? "/upload/images" : "/upload/file";
+        const uploadRes = await axios.post(`${process.env.img}${uploadEndpoint}`, formData);
+
+        // استخراج الرابط من Cloudinary بناءً على استجابة السيرفر
+        finalFileUrl = isImage ? uploadRes.data.urls[0] : uploadRes.data.url;
+        finalFileType = isImage ? "image" : "file";
+      }
+
+      // إرسال التعليق النهائي لقاعدة البيانات
+      await axios.post(`${process.env.local}/comments`, {
+        text: textInput,
+        user_id: studentId,
+        lesson_id: lessonId,
+        file_url: finalFileUrl,
+        file_type: finalFileType,
+        shown: false,
+      });
+
+      socket.emit("add_comment");
+      setTextInput("");
+      removeFile();
+    } catch (error) {
+      console.error("Submission Failed", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-4 bg-white rounded-md shadow-lg">
-      <div className="flex items-center gap-3 mb-4">
-        <Image
-          width={40}
-          height={40}
-          src={`${process.env.img}/image/${imageSrc}`}
-          alt="student profile"
-          className="w-10 h-10 rounded-full object-cover"
-        />
-        <span className="font-semibold capitalize">{nameUser}</span>
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-white border border-slate-100 rounded-[2rem] p-4 shadow-sm"
+    >
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-4 px-2">
+        <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-indigo-50">
+          <Image
+            fill
+            src={imageSrc || "/default-profile.png"}
+            alt="profile"
+            className="object-cover"
+          />
+        </div>
+        <span className="text-sm font-bold text-slate-700 capitalize">{nameUser}</span>
       </div>
 
-      <form className="flex items-center space-x-4">
-        <textarea
-          rows={2}
-          value={textInput}
-          onChange={(e) => setTextInput(e.target.value)}
-          className={`${
-            errText ? "border-red-400 border-4 duration-75 animate-pulse  " : ""
-          } w-full p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none`}
-          placeholder="Write your comment here..."
-        />
+      <div className="relative">
+        {/* File Preview */}
+        <AnimatePresence>
+          {file && (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="mb-3 relative inline-block"
+            >
+              {previewUrl ? (
+                <div className="relative w-24 h-24 rounded-2xl overflow-hidden border-2 border-indigo-100 shadow-sm">
+                  <Image fill src={previewUrl} alt="preview" className="object-cover" />
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                  <Paperclip size={16} className="text-indigo-500" />
+                  <span className="text-xs font-medium text-slate-600 truncate max-w-[150px]">{file.name}</span>
+                </div>
+              )}
+              <button 
+                onClick={removeFile}
+                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 transition-colors"
+              >
+                <X size={12} />
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        <label htmlFor="file-input" className="cursor-pointer">
-          <CiImageOn size={24} className="text-gray-600 hover:text-gray-800" />
-        </label>
-        <input
-          id="file-input"
-          type="file"
-          accept="image/*,application/pdf"
-          className="hidden"
-          onChange={handelFile}
-        />
+        {/* Input Bar */}
+        <div className={`flex items-end gap-2 p-2 bg-slate-50 rounded-[1.5rem] border transition-all ${errText ? 'border-red-400 shake' : 'border-transparent focus-within:border-indigo-200 focus-within:bg-white'}`}>
+          <textarea
+            rows={1}
+            value={textInput}
+            onChange={(e) => setTextInput(e.target.value)}
+            placeholder="Ask a question..."
+            className="flex-1 bg-transparent border-none focus:ring-0 p-3 text-sm text-slate-700 placeholder:text-slate-400 resize-none max-h-32"
+          />
+          
+          <div className="flex items-center gap-1 pb-1 pr-1">
+            <input
+              id="file-comment-upload"
+              type="file"
+              accept="image/*,application/pdf"
+              className="hidden"
+              onChange={handelFile}
+            />
+            <label 
+              htmlFor="file-comment-upload"
+              className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full cursor-pointer transition-all"
+            >
+              <CiImageOn size={24} />
+            </label>
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="flex items-center cursor-pointer justify-center px-5 py-1 bg-blue-600 text-white rounded-full text-lg hover:bg-blue-700 transition disabled:bg-gray-400"
-          onClick={(e) => {
-            e.preventDefault(); // Prevent form submission and handle manually
-            addCommentHandel();
-          }}
-        >
-          {isSubmitting ? <span>Submitting...</span> : <span>Post</span>}
-        </button>
-      </form>
-
-      {/* Show selected file name */}
-      {file && (
-        <div className="mt-2 text-sm text-gray-500">
-          <span>
-            {file.type.split("/")[1]}: {file.name}
-          </span>
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              disabled={isSubmitting || !textInput.trim()}
+              onClick={(e) => { e.preventDefault(); addCommentHandel(); }}
+              className="p-3 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 disabled:bg-slate-300 transition-all"
+            >
+              {isSubmitting ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} />}
+            </motion.button>
+          </div>
         </div>
-      )}
-    </div>
+      </div>
+
+      <style jsx>{`
+        .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake {
+          10%, 90% { transform: translate3d(-1px, 0, 0); }
+          20%, 80% { transform: translate3d(2px, 0, 0); }
+          30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+          40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+      `}</style>
+    </motion.div>
   );
 };
 

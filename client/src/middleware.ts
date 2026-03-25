@@ -17,11 +17,11 @@ export async function middleware(request: NextRequest) {
     try {
       const decodedToken = await jwtVerify(
         token.value,
-        new TextEncoder().encode(process.env.TOKEN_SECRET)
+        new TextEncoder().encode(process.env.TOKEN_SECRET),
       );
       const userDet = await jwtVerify(
         userDeToken.value,
-        new TextEncoder().encode(process.env.TOKEN_SECRET)
+        new TextEncoder().encode(process.env.TOKEN_SECRET),
       );
 
       // Type assertion to `unknown` first, then to `DecodedPayload`
@@ -38,7 +38,7 @@ export async function middleware(request: NextRequest) {
       const response = NextResponse.next();
       response.headers.set(
         "decoded-token",
-        JSON.stringify(decodedToken.payload)
+        JSON.stringify(decodedToken.payload),
       );
       response.headers.set("user-token", JSON.stringify(payloadUser.roleData));
 

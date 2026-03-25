@@ -5,7 +5,6 @@ CREATE TABLE lessons (
     title TEXT NOT NULL,
     chapter_id uuid NOT NULL REFERENCES chapters (id) ON DELETE CASCADE,
     video_url TEXT NOT NULL,
-    image_url TEXT NOT NULL,
     is_active BOOLEAN DEFAULT TRUE,
     is_paid BOOLEAN DEFAULT FALSE,
     price VARCHAR(200)

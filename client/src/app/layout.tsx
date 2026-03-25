@@ -1,4 +1,4 @@
-import NavBar from "./components/navBar";
+import NavBar from "./components/nav/navBar";
 import "./globals.css";
 import { Poppins } from "next/font/google";
 // import { Geist } from "next/font/google";

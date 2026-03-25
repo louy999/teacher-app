@@ -1,7 +1,12 @@
-import { withNextVideo } from "next-video/process";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    reactCompiler: true,
+  },
+  experimental: {
+    reactCompiler: true,
+  },
   images: {
     remotePatterns: [
       {
@@ -13,32 +18,31 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "images.unsplash.com",
-        pathname: "**",
+        pathname: "/**", // أضفت / هنا للتحوط
       },
+     
       {
         protocol: "https",
-        hostname: "storyset.com",
-        pathname: "**",
+        hostname: "img.youtube.com",
+        pathname: "/**",
       },
+     
       {
-        protocol: "http",
-        hostname: "192.168.1.3",
-        pathname: "**",
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        pathname: "/**",
       },
     ],
   },
 
   env: {
-    customKey: "novaraTo",
-    // local: "http://localhost:5000/api",
-    // img: "http://localhost:5000",
-    local: "http://192.168.1.3:5000/api",
-    img: "http://192.168.1.3:5000",
-    teacherId: "3703a0b7-59ba-4f58-af78-4347b04dd3f3",
-    TOKEN_SECRET: "tokenPas123",
-    limitStudent: "50",
-    assist: "50",
+    local: process.env.LOCAL,
+    img: process.env.IMG,
+    teacherId: process.env.TEACHERID,
+    TOKEN_SECRET: process.env.TOKEN_SECRET,
+    limitStudent: process.env.LIMIT_STUDENT,
+    assist:  process.env.LIMIT_ASSIST,
   },
 };
 
-export default withNextVideo(nextConfig, { folder: "y" });
+export default nextConfig;

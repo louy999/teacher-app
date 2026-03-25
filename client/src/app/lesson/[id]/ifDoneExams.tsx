@@ -1,9 +1,9 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { MdOutlineAssessment } from "react-icons/md";
 import Link from "next/link";
 import axios from "axios";
-import { IoCheckmarkDoneCircleOutline } from "react-icons/io5";
+import { motion } from "framer-motion";
+import { CheckCircle2, PlayCircle, Timer, Award, ChevronRight } from "lucide-react";
 
 interface Exam {
   id: string;
@@ -38,54 +38,70 @@ const IfDoneExams: React.FC<Props> = ({ exam, lessonId, studentId }) => {
         setLoading(false);
       }
     };
-
     fetchAnswers();
   }, [exam.id, studentId]);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return (
+    <div className="h-16 w-full bg-white/10 animate-pulse rounded-2xl" />
+  );
 
+  // الحالة الأولى: الطالب لم يمتحن بعد (Show Start Button)
   if (answers.length === 0) {
     return (
-      <Link
-        href={`/exam/${exam.id}?lessonId=${lessonId}&studentId=${studentId}`}
-        className="flex items-center gap-3 mb-2 cursor-pointer hover:bg-slate-100 hover:p-3 hover:mb-3 duration-300 rounded-md transition-all"
+      <motion.div
+        whileHover={{ x: 5 }}
+        whileTap={{ scale: 0.98 }}
       >
-        <div className="flex items-center justify-center bg-[#F0F2F5] rounded-md p-3">
-          <MdOutlineAssessment className="text-xl " />
-        </div>
-        <div>
-          <div className="text-gray-800 font-semibold text-lg capitalize">
-            {exam.title}
+        <Link
+          href={`/exam/${exam.id}?lessonId=${lessonId}&studentId=${studentId}`}
+          className="flex items-center justify-between p-4 bg-white/10 hover:bg-white/20 border border-white/10 rounded-2xl transition-all group"
+        >
+          <div className="flex items-center gap-4">
+            <div className="p-2.5 bg-indigo-500 rounded-xl text-white shadow-lg shadow-indigo-500/20 group-hover:bg-white group-hover:text-indigo-600 transition-colors">
+              <PlayCircle size={22} />
+            </div>
+            <div>
+              <h4 className="font-bold text-sm text-white capitalize">{exam.title}</h4>
+              <p className="text-[10px] text-indigo-200 flex items-center gap-1 mt-1 font-medium">
+                <Timer size={12} /> {exam.time} Minutes
+              </p>
+            </div>
           </div>
-          <div className="text-sm text-gray-400">{exam.time} Min</div>
-        </div>
-      </Link>
+          <ChevronRight size={18} className="text-white/40 group-hover:text-white" />
+        </Link>
+      </motion.div>
     );
   }
 
-  const incorrectCount = answers.filter((a) => !a.is_correct).length;
-  const totalCount = answers.length;
-  const scorePercentage = Math.round(
-    ((totalCount - incorrectCount) / totalCount) * 100
-  );
+  // الحالة الثانية: الطالب أنهى الامتحان (Show Results)
+  const correctCount = answers.filter((a) => a.is_correct).length;
+  const scorePercentage = Math.round((correctCount / answers.length) * 100);
+  const isExcellent = scorePercentage >= 80;
 
   return (
-    <div className=" flex items-center gap-3  cursor-pointer border-green-300 border-2 p-2 rounded-md ">
-      <div className="flex items-center justify-center bg-[#F0F2F5] rounded-md p-3">
-        <MdOutlineAssessment className="text-xl " />
-      </div>
-      <div>
-        <div className="text-gray-800 font-semibold text-lg capitalize flex items-center gap-2">
-          <span>{exam.title}</span>
-          <span>
-            <IoCheckmarkDoneCircleOutline className="text-green-400 text-2xl" />
-          </span>
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="p-4 bg-white rounded-2xl border-2 border-emerald-400/30 flex items-center justify-between shadow-sm"
+    >
+      <div className="flex items-center gap-4">
+        <div className={`p-2.5 rounded-xl ${isExcellent ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>
+          <Award size={22} />
         </div>
         <div>
-          <span className="text-sm text-gray-400">{scorePercentage}%</span>
+          <h4 className="font-bold text-sm text-slate-800 capitalize flex items-center gap-2">
+            {exam.title}
+            <CheckCircle2 size={14} className="text-emerald-500" />
+          </h4>
+          <div className="flex items-center gap-3 mt-1">
+            <span className={`text-[11px] font-black px-2 py-0.5 rounded-full ${isExcellent ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
+              {scorePercentage}% Score
+            </span>
+            <span className="text-[10px] text-slate-400 font-medium italic">Completed</span>
+          </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
