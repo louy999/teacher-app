@@ -1,4 +1,4 @@
-import {Router, Request, Response} from 'express'
+import {Router, Request, Response,NextFunction} from 'express'
 import UsersModel from '../../models/users.model'
 import TeachersModel from '../../models/teachers.model'
 import StudentsModel from '../../models/students.model'
@@ -16,7 +16,8 @@ import TeacherSubscriptionsModal from '../../models/teacherSubscription.modal'
 import ParentsStudentsModel from '../../models/ParentsStudents.model'
 import TeachersAssistModel from '../../models/teachersAssist.model'
 import FilesModel from '../../models/files.model'
-import ExamsModel from '../../models/exams.model';
+import ExamsModel from '../../models/exams.model'
+import AnswersModel from '../../models/answers.model'
 const usersModel = new UsersModel()
 const teachersModel = new TeachersModel()
 const studentsModel = new StudentsModel()
@@ -35,8 +36,14 @@ const parentsStudentsModel = new ParentsStudentsModel()
 const teachersAssistModel = new TeachersAssistModel()
 const filesModel = new FilesModel()
 const examsModel = new ExamsModel()
+const answersModel = new AnswersModel()
 
 const routes = Router()
+// Define an interface for the route parameters for better type safety
+interface ProfileParams {
+    studentId: string;
+    teacherId: string;
+}
 //add mutable users
 routes.post('/addUser', async (req: Request, res: Response, next) => {
 	try {
@@ -51,6 +58,7 @@ routes.post('/addUser', async (req: Request, res: Response, next) => {
 			price,
 			expire_date,
 			plan,
+			active,
 		} = req.body
 
 		const newUser = await usersModel.create({full_name, password, phone, role})
@@ -60,6 +68,7 @@ routes.post('/addUser', async (req: Request, res: Response, next) => {
 				id: newUser.id,
 				subject,
 				grade_levels,
+				active,
 			})
 			const teacherSub = await teacherSubscriptionsModal.create({
 				teacher_id: newUser.id,
@@ -136,7 +145,7 @@ routes.get(
 	async (req: Request, res: Response, next) => {
 		try {
 			const {student, teacher} = req.params
-			const teacherSub = await teacherSubscriptionsModal.getByTeacher_id(
+			const teacherSub = await teacherSubscriptionsModal.getByTeacherId(
 				teacher as unknown as string
 			)
 
@@ -171,21 +180,43 @@ routes.get(
 		try {
 			const {teacherId, stage, student} = req.params
 
+			const teacherSub = await teacherSubscriptionsModal.getByTeacherId(teacherId)
+
+			if (teacherSub && teacherSub.active) {
+				const isExpired = teacherSub.expire_date < new Date()
+
+				// ❌ لو منتهي
+				if (isExpired) {
+					throw new Error('Teacher subscription expired')
+				}
+
+				// ❌ لازم الطالب يكون دافع
+				const trans = await transTeacherModal.getByTeacherIdAndStudentId(
+					teacherId,
+					student
+				)
+
+				if (!trans) {
+					throw new Error('Student is not subscribed')
+				}
+			}
+
 			const chapters = await chapterModel.getByTeacherIdAndStage(teacherId, stage)
 
-			const chaptersWithLessonsAndViews = await Promise.all(
+			const chaptersWithLessons = await Promise.all(
 				chapters.map(async (chapter: any) => {
 					const lessons = await lessonsModel.getByChapterId(chapter.id)
 
-					const lessonsWithViews = await Promise.all(
+					const lessonsWithData = await Promise.all(
 						lessons.map(async (lesson: any) => {
-							const views = await viewsModel.getByLessonIdAndStudentId(
-								lesson.id,
-								student
-							)
+							const [subscribe, views] = await Promise.all([
+								subscribeModel.getByLessonIdAndStudentId(lesson.id, student),
+								viewsModel.getByLessonIdAndStudentId(lesson.id, student),
+							])
 
 							return {
 								...lesson,
+								subscribe,
 								views,
 							}
 						})
@@ -193,38 +224,78 @@ routes.get(
 
 					return {
 						...chapter,
-						lessons: lessonsWithViews,
+						lessons: lessonsWithData,
 					}
 				})
 			)
 
-			res.json({
-				chapters: chaptersWithLessonsAndViews,
-			})
+			res.json({chapters: chaptersWithLessons})
 		} catch (err) {
 			next(err)
 		}
 	}
 )
-//get all lesson and about lesson (files-subscribtion)
+//get all lesson and about lesson (files-subscription)
 routes.get(
-	'/allLesson/lesson/:lessonId/student/:studentId',
+	'/allLesson/lesson/:lessonId/student/:studentId/teacher/:teacherId',
 	async (req: Request, res: Response, next) => {
 		try {
-			const {lessonId, studentId} = req.params
-			const lesson = await lessonsModel.getOne(lessonId as unknown as string)
-			const file = await filesModel.getByLessonId(lessonId as unknown as string)
-			const subscribe = await subscribeModel.getByStudentId(
-				studentId as unknown as string
+			const {lessonId, studentId, teacherId} = req.params
+
+			const teacherSub = await teacherSubscriptionsModal.getByTeacherId(teacherId)
+			if (
+				!teacherSub ||
+				!teacherSub.active ||
+				teacherSub.expire_date < new Date()
+			) {
+				throw new Error('Teacher subscription expired or inactive')
+			}
+
+			const trans = await transTeacherModal.getByTeacherIdAndStudentId(
+				teacherId,
+				studentId
 			)
-			const exam = await examsModel.getByLessonId(
-			lessonId as unknown as string
-		)
+			if (!trans) {
+				throw new Error('Student is not subscribed to this teacher')
+			}
+
+			const lesson = await lessonsModel.getOne(lessonId)
+			const file = await filesModel.getByLessonId(lessonId)
+			const exams = await examsModel.getByLessonId(lessonId)
+			const views = await viewsModel.getByLessonIdAndStudentId(lessonId, studentId)
+
+			let subscribe = null
+			if (lesson.is_paid) {
+				subscribe = await subscribeModel.getByLessonIdAndStudentId(
+					lessonId,
+					studentId
+				)
+			}
+
+			const examsWithAnswers = await Promise.all(
+				exams.map(async (exam: any) => {
+					const studentAnswer = await answersModel.getByStudentIdAndExamId(
+						studentId,
+						exam.id
+					)
+
+					return {
+						...exam,
+						studentAnswer: studentAnswer || null,
+					}
+				})
+			)
 
 			res.json({
 				status: 'success',
-				data: {...lesson, file, subscribe,exam},
-				message: 'comments with users fetched successfully',
+				data: {
+					...lesson,
+					file,
+					subscribe,
+					views,
+					exams: examsWithAnswers,
+				},
+				message: 'Lesson fetched successfully',
 			})
 		} catch (err) {
 			next(err)
@@ -238,35 +309,64 @@ routes.get(
 		const {lesson} = req.params
 
 		try {
-			const comments = await commentsModel.getByLessonId(lesson as string)
+			const comments = await commentsModel.getByLessonId(lesson)
 
-			const commentsWithUser = await Promise.all(
+			const commentsWithDetails = await Promise.all(
 				comments.map(async (comment: any) => {
-					const user = await usersModel.getOne(comment.user_id)
+					const [user, replies] = await Promise.all([
+						usersModel.getOne(comment.user_id),
+						replayModel.getByCommentId(comment.id),
+					])
 
 					let extraData = null
-					if (user.role === 'teachers') {
-						extraData = await teachersModel.getOne(user.id as string)
-					} else if (user.role === 'parents') {
-						extraData = await parentsModel.getOne(user.id as string)
-					} else if (user.role === 'students') {
-						extraData = await studentsModel.getOne(user.id as string)
-					} else if (user.role === 'assistants') {
-						extraData = await assistantsModel.getOne(user.id as string)
+					if (user) {
+						const roleModelMap: any = {
+							teachers: teachersModel,
+							parents: parentsModel,
+							students: studentsModel,
+							assistants: assistantsModel,
+						}
+						const model = roleModelMap[user.role]
+						if (model) extraData = await model.getOne(user.id)
 					}
+
+					const repliesWithUser = await Promise.all(
+						(replies || []).map(async (reply: any) => {
+							const replyUser = await usersModel.getOne(reply.user_id)
+							let replyExtraData = null
+
+							if (replyUser) {
+								const roleModelMap: any = {
+									teachers: teachersModel,
+									parents: parentsModel,
+									students: studentsModel,
+									assistants: assistantsModel,
+								}
+								const model = roleModelMap[replyUser.role]
+								if (model) replyExtraData = await model.getOne(replyUser.id)
+							}
+
+							return {
+								...reply,
+								user: replyUser,
+								extraData: replyExtraData,
+							}
+						})
+					)
 
 					return {
 						...comment,
 						user,
 						extraData,
+						replies: repliesWithUser,
 					}
 				})
 			)
 
 			res.json({
 				status: 'success',
-				data: commentsWithUser,
-				message: 'comments with users fetched successfully',
+				data: commentsWithDetails,
+				message: 'Nested comments and replies fetched successfully',
 			})
 		} catch (err) {
 			next(err)
@@ -344,7 +444,7 @@ routes.get(
 			const trans = await transTeacherModal.getByTeacher_id(teacherId as string)
 
 			// Fetch teacher subscriptions
-			const teacherSub = await teacherSubscriptionsModal.getByTeacher_id(
+			const teacherSub = await teacherSubscriptionsModal.getByTeacherId(
 				teacherId as string
 			)
 
@@ -367,37 +467,6 @@ routes.get(
 					teacherSub,
 				},
 				message: 'Transactions and subscriptions fetched successfully',
-			})
-		} catch (err) {
-			next(err)
-		}
-	}
-)
-// get replays for a comment with user info
-routes.get(
-	`/replay/comment/:commentId`,
-	async (req: Request, res: Response, next) => {
-		const {commentId} = req.params
-		try {
-			const replays = await replayModel.getByCommentId(commentId as string)
-
-			const replaysWithUsers = await Promise.all(
-				replays.map(async (replay) => {
-					const user = await usersModel.getOne(replay.user_id as string)
-					if (user.role === 'teachers') {
-						const extraData = await teachersModel.getOne(user.id as string)
-						return {...replay, user, extraData}
-					} else if (user.role === 'assistants') {
-						const extraData = await assistantsModel.getOne(user.id as string)
-						return {...replay, user, extraData}
-					}
-				})
-			)
-
-			res.json({
-				status: 'success',
-				data: replaysWithUsers,
-				message: 'Replays fetched successfully',
 			})
 		} catch (err) {
 			next(err)
@@ -451,5 +520,135 @@ routes.get(
 		}
 	}
 )
+// get all chapters and lessons by stage
+routes.get(
+	`/chaptersLessons/:teacherId/stage/:stage`,
+	async (req: Request, res: Response, next) => {
+		const {teacherId, stage} = req.params
+		try {
+		const chapter = await chapterModel.getByTeacherIdAndStage(
+				teacherId as unknown as string,
+				stage as unknown as string
+			)
+				const allLessons = await Promise.all(
+				chapter.map(async (c: any) => {
+		const lesson = await lessonsModel.getPaidAndChapter(c.id as string)
+					return {...c, lesson} // merge chapter with its lessons
+				}
+				)
+			)
+			res.json({
+				status: 'success',
+				data: allLessons,
+				message: 'Users fetched successfully',
+			})
+		} catch (err) {
+			next(err)
+		}
+	}
+)
+//profile page for student to show all his teachers (with subscription status) and assistants and parents
+routes.get(
+    '/profile/student/:studentId/teacher/:teacherId',
+    async (req: Request<ProfileParams>, res: Response, next: NextFunction): Promise<void> => {
+        const { studentId, teacherId } = req.params;
+
+        try {
+            // 1. Verify student-teacher relationship
+            const studentTeacher = await studentsTeacherModel.getByTeacherIdStudentId(
+                teacherId,
+                studentId
+            );
+
+            if (!studentTeacher) {
+                res.status(403).json({ 
+                    status: 'error', 
+                    message: 'Student is not associated with this teacher' 
+                });
+                return;
+            }
+
+            // 2. Fetch basic data in parallel to optimize performance
+            const [student, studentExtra, view, studentAnswers, subscribe] = await Promise.all([
+                usersModel.getOne(studentId),
+                studentsModel.getOne(studentId),
+                viewsModel.getByStudentId(studentId),
+                answersModel.getByStudentId(studentId),
+                subscribeModel.getByStudentIdAndTeacherId(studentId, teacherId)
+            ]);
+
+            // 3. Map lessons with view progress
+            const allLessonsInView = await Promise.all(
+                view.map(async (v: any) => {
+                    const lesson = await lessonsModel.getOne(v.lesson_id);
+                    return { ...v, lesson };
+                })
+            );
+
+            // 4. Group answers inside their respective exams
+            const examsMap = new Map();
+
+            for (const answer of studentAnswers) {
+                if (!examsMap.has(answer.exams_id)) {
+                    const examInfo = await examsModel.getOne(answer.exams_id);
+                    examsMap.set(answer.exams_id, {
+                        ...examInfo,
+                        answers: [] // Array to store student attempts for this exam
+                    });
+                }
+                examsMap.get(answer.exams_id).answers.push(answer);
+            }
+            
+            const examsWithAnswers = Array.from(examsMap.values());
+
+            // 5. Map lessons with subscription details
+            const allLessonInSubscribe = await Promise.all(
+                subscribe.map(async (s: any) => {
+                    const lesson = await lessonsModel.getOne(s.lesson_id);
+                    return { ...s, lesson };
+                })
+            );
+
+            // 6. Check teacher subscription status and validity
+            const teacherSub = await teacherSubscriptionsModal.getByTeacherId(teacherId);
+            
+            let subStatus: any = teacherSub;
+            let trans = null;
+
+            if (teacherSub && teacherSub.active) {
+                const isExpired = new Date(teacherSub.expire_date) < new Date();
+                if (isExpired) {
+                    subStatus = 'expired';
+                }
+
+                trans = await transTeacherModal.getByTeacherIdAndStudentId(teacherId, studentId);
+                if (!trans) {
+                    subStatus = 'no_transaction';
+                }
+            } else {
+                subStatus = 'inactive';
+            }
+
+            // 7. Send final structured response
+            res.json({
+                status: 'success',
+                data: {
+                    student,
+                    studentExtra,
+                    allLessonsInView,
+                    allLessonInSubscribe,
+                    examsWithAnswers,
+                    sub: subStatus,
+                    trans
+                },
+                message: 'Profile data fetched successfully',
+            });
+
+        } catch (err) {
+            // Pass any unexpected errors to the global error handler
+            next(err);
+        }
+    }
+);
 
 export default routes

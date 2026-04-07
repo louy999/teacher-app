@@ -90,6 +90,18 @@ class SubscribeModel {
 			throw new Error(`${err}`)
 		}
 	}
+
+	async getByStudentIdAndTeacherId(student_id: string,teacherId: string): Promise<SubscribeType[]> {
+		try {
+			const connect = await pool.connect()
+			const sql = 'SELECT * from subscribe_lesson WHERE student_id=($1) AND teacher_id=($2)'
+			const result = await connect.query(sql, [student_id,teacherId])
+			connect.release()
+			return result.rows
+		} catch (err) {
+			throw new Error(`${err}`)
+		}
+	}
 	async getByTeacherId(teacherId: string): Promise<SubscribeType[]> {
 		try {
 			const connect = await pool.connect()

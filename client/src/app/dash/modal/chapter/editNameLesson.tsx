@@ -1,205 +1,149 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
 import React, { useState } from "react";
-import { CiEdit } from "react-icons/ci";
 import axios from "axios";
-import { FaPoundSign } from "react-icons/fa";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  Edit3, 
+  Coins, 
+  X, 
+  Check, 
+  Loader2, 
+  Type,
+} from "lucide-react";
 
-const EditNameLesson = ({ lesson, setLesson }) => {
+const EditNameLesson = ({ lesson, setLesson }: any) => {
   const [openModal, setOpenModal] = useState(false);
+  const [openModalPrice, setOpenModalPrice] = useState(false);
   const [newTitle, setNewTitle] = useState(lesson.title || "");
-  const [loading, setLoading] = useState(false);
   const [priceUpdate, setPriceUpdate] = useState(lesson.price);
-  const [openModalEditPrice, setOpenModalEditPrice] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleEditClick = async () => {
+  // دالة موحدة لتحديث أي حقل في الدرس
+  const updateLesson = async (payload: any, closeModals = true) => {
     setLoading(true);
     try {
       await axios.patch(`${process.env.local}/lessons`, {
-        title: newTitle,
-        chapter_id: lesson.chapter_id,
-        video_url: lesson.video_url,
-        image_url: lesson.image_url,
-        is_active: lesson.is_active,
-        is_paid: lesson.is_paid,
-        price: lesson.price,
+        ...lesson,
+        ...payload,
         id: lesson.id,
       });
-
-      const update = await axios.get(
-        `${process.env.local}/lessons/${lesson.id}`
-      );
-
-      setLesson(update.data.data);
-
-      setOpenModal(false);
+      const res = await axios.get(`${process.env.local}/lessons/${lesson.id}`);
+      setLesson(res.data.data);
+      if (closeModals) {
+        setOpenModal(false);
+        setOpenModalPrice(false);
+      }
     } catch (error) {
-      console.log(error);
+      console.error(error);
     } finally {
       setLoading(false);
     }
   };
-  const handleEditActive = async (activeSta) => {
-    setLoading(true);
-    try {
-      await axios.patch(`${process.env.local}/lessons`, {
-        title: lesson.title,
-        chapter_id: lesson.chapter_id,
-        video_url: lesson.video_url,
-        image_url: lesson.image_url,
-        is_active: activeSta,
-        is_paid: lesson.is_paid,
-        price: lesson.price,
-        id: lesson.id,
-      });
 
-      const update = await axios.get(
-        `${process.env.local}/lessons/${lesson.id}`
-      );
-
-      setLesson(update.data.data);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-  const handleEditPrice = async (price) => {
-    setLoading(true);
-    try {
-      await axios.patch(`${process.env.local}/lessons`, {
-        title: lesson.title,
-        chapter_id: lesson.chapter_id,
-        video_url: lesson.video_url,
-        image_url: lesson.image_url,
-        is_active: lesson.is_active,
-        is_paid: price > 0 ? true : false,
-        price: price,
-        id: lesson.id,
-      });
-
-      const update = await axios.get(
-        `${process.env.local}/lessons/${lesson.id}`
-      );
-      setLesson(update.data.data);
-      setOpenModalEditPrice(false);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setLoading(false);
-    }
-  };
   return (
     <>
-      <div className="flex flex-wrap md:flex-nowrap w-fit h-fit md:h-16 md:py-2 md:mb-3  gap-4 mx-2 md:mx-0">
-        <div
+      <div className="flex flex-wrap items-center gap-3 py-2">
+        {/* Title Badge */}
+        <motion.div
+          whileHover={{ y: -2 }}
           onClick={() => setOpenModal(true)}
-          className="flex gap-4 items-center h-full border bg-slate-300 p-2 rounded-md mb-3  cursor-pointer hover:opacity-80 duration-300 w-fit"
+          className="group flex items-center gap-3 bg-white border border-gray-100 px-4 py-2.5 rounded-2xl shadow-sm hover:shadow-md hover:border-indigo-200 cursor-pointer transition-all"
         >
-          <div>{lesson.title}</div>
-          <CiEdit />
-        </div>
-        <div
-          onClick={() => setOpenModalEditPrice(true)}
-          className="flex gap-4 items-center h-full border bg-slate-300 p-2 rounded-md mb-3  cursor-pointer hover:opacity-80 duration-300 w-fit"
-        >
-          <div className="flex items-center gap-1">
-            {lesson.price}
-            <FaPoundSign />
+          <div className="bg-indigo-50 p-1.5 rounded-lg text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+            <Type size={16} />
           </div>
-          <CiEdit />
-        </div>
-        <div className="flex items-center gap-3">
-          <div>Active:</div>
-          <div className="h-11 md:h-full w-full relative ">
-            <div
-              className={`flex items-center cursor-pointer hover:opacity-70 duration-300 ${
-                lesson.is_active ? "justify-start" : "justify-end"
-              } duration-300 h-full bg-slate-300 px-2 w-20  rounded-2xl   `}
-              onClick={() => {
-                handleEditActive(!lesson.is_active);
-              }}
+          <span className="text-sm font-bold text-gray-700">{lesson.title}</span>
+          <Edit3 size={14} className="text-gray-300 group-hover:text-indigo-400" />
+        </motion.div>
+
+        {/* Price Badge */}
+        <motion.div
+          whileHover={{ y: -2 }}
+          onClick={() => setOpenModalPrice(true)}
+          className="group flex items-center gap-3 bg-white border border-gray-100 px-4 py-2.5 rounded-2xl shadow-sm hover:shadow-md hover:border-emerald-200 cursor-pointer transition-all"
+        >
+          <div className="bg-emerald-50 p-1.5 rounded-lg text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+            <Coins size={16} />
+          </div>
+          <span className="text-sm font-black text-emerald-700">{lesson.price} <small className="text-[10px]">EGP</small></span>
+          <Edit3 size={14} className="text-gray-300 group-hover:text-emerald-400" />
+        </motion.div>
+
+        {/* Active Toggle */}
+        <div className="flex items-center gap-3 bg-gray-100/50 p-1.5 rounded-2xl border border-gray-100">
+          <span className="text-[10px] font-black uppercase text-gray-400 ml-2 tracking-tighter">Status</span>
+          <div 
+            onClick={() => !loading && updateLesson({ is_active: !lesson.is_active }, false)}
+            className={`relative w-14 h-8 rounded-xl cursor-pointer p-1 transition-colors duration-300 ${lesson.is_active ? 'bg-indigo-600' : 'bg-gray-300'}`}
+          >
+            <motion.div 
+              animate={{ x: lesson.is_active ? 24 : 0 }}
+              className="w-6 h-6 bg-white rounded-lg shadow-sm flex items-center justify-center"
             >
-              <div
-                className={`rounded-full ${
-                  lesson.is_active ? "bg-blue-400" : "bg-black"
-                } w-7 h-7`}
-              ></div>
-            </div>
-            {loading && (
-              <div className="absolute top-0 rounded-2xl text-center flex items-center justify-center z-30 w-full h-full bg-black/80">
-                Loading...
-              </div>
-            )}
+              {loading ? <Loader2 size={10} className="animate-spin text-indigo-600" /> : 
+                lesson.is_active ? <Check size={12} className="text-indigo-600" /> : <X size={12} className="text-gray-400" />
+              }
+            </motion.div>
           </div>
         </div>
       </div>
-      {openModalEditPrice && (
-        <div className="modal fixed inset-0 flex items-center justify-center bg-black/50">
-          <div className="modal-content bg-white p-4 rounded-lg shadow-lg">
-            <h2>Edit Lesson Price</h2>
-            <input
-              type="text"
-              onChange={(e) => setPriceUpdate(e.target.value)}
-              placeholder="Enter new lesson price"
-              value={priceUpdate}
-              className={`border rounded-md p-2 w-full`}
+
+      {/* Reusable Modal for Name and Price */}
+      <AnimatePresence>
+        {(openModal || openModalPrice) && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => { setOpenModal(false); setOpenModalPrice(false); }}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
             />
-            <div className="flex justify-between items-center mt-4 gap-4">
-              {loading ? (
-                <button className="py-2 cursor-pointer w-full bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200">
-                  Loading...
-                </button>
-              ) : (
-                <button
-                  className="py-2 cursor-pointer w-full bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200"
-                  onClick={() => handleEditPrice(priceUpdate)}
-                >
-                  Save
-                </button>
-              )}
-              <button
-                className="py-2 cursor-pointer w-full bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition duration-200"
-                onClick={() => setOpenModalEditPrice(false)}
-              >
-                Close
-              </button>
-            </div>
+            
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative bg-white w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl"
+            >
+              <div className="mb-6">
+                <h2 className="text-xl font-black text-gray-800 tracking-tight">
+                  {openModal ? "Edit Lesson Name" : "Edit Lesson Price"}
+                </h2>
+                <p className="text-xs text-gray-400 font-medium">Update the information for your students</p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="relative">
+                  <input
+                    type={openModal ? "text" : "number"}
+                    value={openModal ? newTitle : priceUpdate}
+                    onChange={(e) => openModal ? setNewTitle(e.target.value) : setPriceUpdate(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-100 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 font-bold transition-all"
+                    placeholder={openModal ? "Enter title..." : "0.00"}
+                  />
+                  {openModalPrice && <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 font-black text-xs">EGP</span>}
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={() => openModal ? updateLesson({ title: newTitle }) : updateLesson({ price: Number(priceUpdate), is_paid: Number(priceUpdate) > 0 })}
+                    disabled={loading}
+                    className="flex-[2] bg-indigo-600 text-white p-4 rounded-2xl font-bold shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all flex items-center justify-center gap-2"
+                  >
+                    {loading ? <Loader2 size={18} className="animate-spin" /> : <><Check size={18} /> Save</>}
+                  </button>
+                  <button
+                    onClick={() => { setOpenModal(false); setOpenModalPrice(false); }}
+                    className="flex-1 bg-gray-100 text-gray-500 p-4 rounded-2xl font-bold hover:bg-gray-200 transition-all"
+                  >
+                    <X size={18} className="mx-auto" />
+                  </button>
+                </div>
+              </div>
+            </motion.div>
           </div>
-        </div>
-      )}
-      {openModal && (
-        <div className="modal fixed inset-0 flex items-center justify-center bg-black/50">
-          <div className="modal-content bg-white p-4 rounded-lg shadow-lg">
-            <h2>Edit Lesson Name</h2>
-            <input
-              type="text"
-              onChange={(e) => setNewTitle(e.target.value)}
-              placeholder="Enter new lesson name"
-              value={newTitle}
-              className={`border rounded-md p-2 w-full`}
-            />
-            <div className="flex justify-between items-center mt-4 gap-4">
-              {loading ? (
-                <button className="py-2 cursor-pointer w-full bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200">
-                  Loading...
-                </button>
-              ) : (
-                <button
-                  className="py-2 cursor-pointer w-full bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200"
-                  onClick={handleEditClick}
-                >
-                  Save
-                </button>
-              )}
-              <button
-                className="py-2 cursor-pointer w-full bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition duration-200"
-                onClick={() => setOpenModal(false)}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </>
   );
 };

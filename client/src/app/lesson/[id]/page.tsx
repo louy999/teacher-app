@@ -46,10 +46,9 @@ const LessonPage = async ({ params }: { params: Promise<{ id: string }> }) => {
   let lesson: Lesson | null = null;
   try {
     const res = await axios.get(
-      `${process.env.local}/m/allLesson/lesson/${lessonId}/student/${studentData.id}`,
+      `${process.env.local}/m/allLesson/lesson/${lessonId}/student/${studentData.id}/teacher/${process.env.teacherId}`,
     );
     lesson = res.data.data;
-    console.log(res.data.data);
   } catch (error) {
     console.log(error);
 
@@ -63,22 +62,21 @@ const LessonPage = async ({ params }: { params: Promise<{ id: string }> }) => {
   if (!lesson) redirect("/");
   if (!lesson.is_active) redirect("/");
 
-  // if subscription
-  if (lesson.is_paid) {
-    if (lesson.subscribe.length) {
-      if (lesson.subscribe[0].expire) {
-        const expireDate = new Date(subscription.expire);
-        const currentDate = new Date();
+// ✅ Paid lesson access control
+if (lesson.is_paid) {
+  const subscription = lesson.subscribe;
 
-        if (expireDate < currentDate) {
-          redirect(`/notSubscription/${lessonId}`);
-        }
-        return null;
-      } else {
-        redirect("/");
-      }
-    }
+  if (!subscription) {
+    redirect(`/notSubscription/${lessonId}`);
   }
+
+  // ❌ الاشتراك منتهي
+  const isExpired = new Date(subscription.expire) < new Date();
+
+  if (isExpired) {
+    redirect(`/notSubscription/${lessonId}`);
+  }
+}
   return (
     <div className="min-h-screen bg-slate-50/50 pb-20">
       {/* 1. Header & Breadcrumbs */}
@@ -93,7 +91,7 @@ const LessonPage = async ({ params }: { params: Promise<{ id: string }> }) => {
             </Link>
             <IoChevronForward className="text-slate-300" />
             <Link
-              href="/chapters"
+              href="/"
               className="text-slate-500 hover:text-indigo-600 transition-colors"
             >
               Chapters
@@ -114,6 +112,7 @@ const LessonPage = async ({ params }: { params: Promise<{ id: string }> }) => {
         <div className="lg:col-span-2 space-y-8 flex flex-col">
           <div className="order-1 bg-slate-900 rounded-[2rem] overflow-hidden shadow-2xl shadow-indigo-200/20 group relative">
             <LessonPlayer
+            lesson={lesson}
               videoUrl={lesson.video_url}
               lessonId={lesson.id}
               studentId={studentData.id}
@@ -178,7 +177,7 @@ const LessonPage = async ({ params }: { params: Promise<{ id: string }> }) => {
               <p className="text-indigo-100 text-sm mb-6 leading-relaxed">
                 Test your understanding and unlock your certificates.
               </p>
-              <ExamPage lessonId={lesson.id} exams={lesson.exam} studentId={studentData.id} />
+              <ExamPage lesson={lesson}  studentId={studentData.id} />
             </div>
             <div className="absolute -bottom-6 -right-6 text-white/10 group-hover:scale-110 transition-transform duration-700">
               <BookOpen size={140} />

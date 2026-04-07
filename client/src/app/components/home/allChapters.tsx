@@ -6,8 +6,9 @@ import AllLessons from "./allLessons";
 import Image from "next/image";
 import rocketIcon from "../../images/rocket.png";
 import bookIcon from "../../images/book.png";
-import { ChapterMotion } from "./ChapterMotion"; // استيراد المكون أعلاه
+import { ChapterMotion } from "./ChapterMotion"; 
 import { GraduationCap, Sparkles } from "lucide-react";
+import { redirect } from "next/navigation";
 
 const AllChapters = async () => {
   try {
@@ -26,9 +27,8 @@ const AllChapters = async () => {
     const res = await axios.get(
       `${process.env.local}/m/chapterLesson/teacher/${process.env.teacherId}/stage/${parsedToken.stage}/student/${parsedToken.id}`,
     );
-
     const chapters = res.data.chapters || [];
-
+console.log(chapters)
     if (!chapters.length) {
       return (
         <div className="text-center py-20 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200 m-6">
@@ -103,6 +103,7 @@ const AllChapters = async () => {
     );
   } catch (error) {
     console.error("Error fetching data:", error);
+      redirect("/profile");
     return (
       <div className="m-8 p-8 bg-red-50 rounded-3xl border border-red-100 text-center">
         <p className="text-red-600 font-bold">Something went wrong while loading your course.</p>

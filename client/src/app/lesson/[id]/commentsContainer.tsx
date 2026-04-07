@@ -18,6 +18,8 @@ const CommentsContainer = ({ lessonId, showOnlyAdminApproved, title }: any) => {
   const fetchData = useCallback(async () => {
     try {
       const res = await axios.get(`${process.env.local}/m/getComments/lesson/${lessonId}`);
+      console.log(res.data.data);
+      
       setCommentsData(res.data.data);
     } catch (error) {
       console.error("Error fetching comments:", error);
@@ -30,9 +32,12 @@ const CommentsContainer = ({ lessonId, showOnlyAdminApproved, title }: any) => {
     fetchData();
     socket.on("all_com", fetchData);
     socket.on("all_comment", fetchData);
+    socket.on("all_replay", fetchData);
+
     return () => {
       socket.off("all_com", fetchData);
       socket.off("all_comment", fetchData);
+      socket.off("all_replay", fetchData);
     };
   }, [fetchData]);
 
@@ -97,7 +102,7 @@ const CommentsContainer = ({ lessonId, showOnlyAdminApproved, title }: any) => {
               <div className="flex items-center gap-3 mb-4">
                 <div className="relative h-10 w-10 rounded-xl overflow-hidden bg-slate-100 shrink-0">
                   <Image
-                    src={comment.extraData?.profile_pic || "/default-profile.png"}            
+                    src={comment.extraData?.profile_pic }            
                     alt="User" fill className="object-cover"
                   />
                 </div>
@@ -149,7 +154,7 @@ const CommentsContainer = ({ lessonId, showOnlyAdminApproved, title }: any) => {
                 </div>
               )}
 
-              <AllReplay commentId={comment.id} />
+              <AllReplay replies={comment.replies} />
             </motion.div>
           ))}
         </AnimatePresence>

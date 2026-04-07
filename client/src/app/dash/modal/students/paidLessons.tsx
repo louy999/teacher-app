@@ -1,250 +1,200 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { format } from "date-fns";
-import LessonName from "../../../profile/[studentId]/lessonName";
-import { IoMdClose } from "react-icons/io";
+import { motion, AnimatePresence } from "framer-motion";
+import socket from '../../../lib/socket';
+import { 
+  Plus, 
+  BookOpen, 
+  Calendar, 
+  CheckCircle2, 
+  Loader2, 
+  X, 
+  DollarSign, 
+  Layers 
+} from "lucide-react";
 
-const PaidLessonsDash = ({ roleDet, studentDet }: any) => {
-  const [allSubFetch, setAllSubFetch] = useState([]);
+const PaidLessonsDash = ({ roleDet }: any) => {
   const [openAddLesson, setOpenAddLesson] = useState(false);
-  const [allChaptersFetch, setAllChaptersFetch] = useState([]);
-  const [checkLesson, setCheckLesson] = useState("");
-  const [allLessonFetch, setAllLessonFetch] = useState([]);
-  const [selectLessonId, setSelectLessonId] = useState({});
+  const [allChaptersFetch, setAllChaptersFetch] = useState<any[]>([]);
+  const [checkChapterId, setCheckChapterId] = useState(""); 
+  const [selectLessonId, setSelectLessonId] = useState<any>({});
   const [loading, setLoading] = useState(false);
   const [dateEx, setDateEx] = useState("");
   const [err, setErr] = useState("");
-  // get All lessons paid for student
-  // get All lessons paid for student
-  const fetchableLessonsPaid = useCallback(async () => {
-    try {
-      const res = await axios.get(
-        `${process.env.local}/subscribe/student/${roleDet.id}`
-      );
-      setAllSubFetch(res.data.data);
-    } catch (error) {
-      console.log(error);
-    }
-  }, [roleDet.id]);
-  //call function to get all lessons paid for student
-  useEffect(() => {
-    fetchableLessonsPaid();
-  }, [fetchableLessonsPaid, roleDet.id]);
 
-  // get all chapters for student stage
   useEffect(() => {
-    const allChapter = async () => {
+    const allChapterAndLessons = async () => {
       try {
-        const res = await axios.get(
-          `${process.env.local}/chapters/stage/${studentDet.stage}`
-        );
+        const stage = roleDet?.studentExtra?.stage;
+        const res = await axios.get(`${process.env.local}/m/chaptersLessons/${process.env.teacherId}/stage/${stage}`);
         setAllChaptersFetch(res.data.data);
-      } catch (error) {
-        console.log(error);
+      } catch (error) { 
+        console.log("Error fetching chapters and lessons:", error); 
       }
     };
-    allChapter();
-  }, [studentDet.stage]);
-  // get all lessons for selected chapter
-  useEffect(() => {
-    const allLessons = async () => {
-      try {
-        const res = await axios.get(
-          `${process.env.local}/lessons/chapter/${checkLesson}`
-        );
-        setAllLessonFetch(res.data.data);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    if (checkLesson !== "") {
-      allLessons();
-    }
-  }, [checkLesson]);
-  // add lesson to student
+    if (roleDet?.studentExtra?.stage) allChapterAndLessons();
+  }, [roleDet]);
+
+  const availableLessons = allChaptersFetch.find((c) => c.id === checkChapterId)?.lesson || [];
+
   const addLesson = async () => {
     if (!selectLessonId.id || !dateEx) {
       setErr("Please select lesson and expiration date");
       return;
     }
-
     setLoading(true);
     try {
       const payload = {
-        student_id: roleDet.id,
+        student_id: roleDet.student.id,
         lesson_id: selectLessonId.id,
         teacher_id: process.env.teacherId,
-        expire: new Date(dateEx + "T00:00:00Z").toISOString(),
+        expire: new Date(dateEx + "T23:59:59Z").toISOString(),
         price: selectLessonId.price,
       };
-
       await axios.post(`${process.env.local}/subscribe`, payload);
-      setErr("Lesson added successfully ✅");
+      socket.emit('add_Paid');
       setOpenAddLesson(false);
-      setCheckLesson("");
+      setCheckChapterId("");
       setSelectLessonId({});
       setDateEx("");
-      fetchableLessonsPaid();
-    } catch (error) {
-      console.log(error);
-      setErr("Failed to add lesson ❌");
-    } finally {
-      setLoading(false);
+    } catch { 
+      setErr("Failed to add lesson ❌"); 
+    } finally { 
+      setLoading(false); 
     }
   };
 
   return (
-    <>
-      <div className="w-full p-2 h-60 overflow-y-auto">
-        <h2 className="text-[#121416] flex justify-between text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">
-          <div> Paid Lessons</div>
-          <input
-            type="button"
-            value="Add lesson"
-            className="bg-blue-400 p-3 rounded-md text-white text-sm font-semibold hover:bg-blue-500 transition-all duration-300 cursor-pointer ml-4"
-            onClick={() => setOpenAddLesson(!openAddLesson)}
-          />
-        </h2>
+    <div className="w-full space-y-4">
+      {/* Header Section */}
+      <div className="flex justify-between items-center p-4 bg-gray-50/50 rounded-xl border border-gray-100">
+        <div className="flex items-center gap-2">
+          <BookOpen className="text-blue-600" size={22} />
+          <h2 className="text-lg font-bold text-gray-800">Paid Lessons</h2>
+        </div>
+        <button
+          onClick={() => setOpenAddLesson(!openAddLesson)}
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-md active:scale-95"
+        >
+          {openAddLesson ? <X size={18} /> : <Plus size={18} />}
+          {openAddLesson ? "Cancel" : "Add Lesson"}
+        </button>
+      </div>
 
+      {/* Add Lesson Animated Form */}
+      <AnimatePresence>
         {openAddLesson && (
-          <div>
-            <div className="border-2 rounded-md p-4">
-              <div className="flex gap-5 justify-between">
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="p-5 bg-white border-2 border-blue-100 rounded-2xl shadow-sm grid grid-cols-1 md:grid-cols-3 gap-4">
+              
+              {/* Step 1: Select Chapter */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-500 flex items-center gap-1">
+                  <Layers size={14} /> 1. Select Chapter
+                </label>
                 <select
-                  value={checkLesson}
-                  onChange={(e) => setCheckLesson(e.target.value)}
-                  className="w-full bg-slate-200 p-2 rounded-md"
+                  value={checkChapterId}
+                  onChange={(e) => {
+                    setCheckChapterId(e.target.value);
+                    setSelectLessonId({}); 
+                  }}
+                  className="w-full bg-gray-50 border border-gray-200 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="" disabled>
-                    Select chapter
-                  </option>
-                  {allChaptersFetch.map((c, i) => (
-                    <option key={i} value={c.id}>
-                      {c.name}
+                  <option value="">Choose Chapter...</option>
+                  {allChaptersFetch.map((c: any) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Step 2: Select Lesson (Filtered from local data) */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-500 flex items-center gap-1">
+                  <BookOpen size={14} /> 2. Choose Lesson
+                </label>
+                <select
+                  disabled={!checkChapterId}
+                  value={selectLessonId.id || ""}
+                  onChange={(e) => {
+                    const lesson = availableLessons.find((l: any) => l.id === e.target.value);
+                    if (lesson) setSelectLessonId({ id: lesson.id, price: lesson.price });
+                  }}
+                  className="w-full bg-gray-50 border border-gray-200 p-2.5 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                >
+                  <option value="">Select Lesson...</option>
+                  {availableLessons.map((l: any) => (
+                    <option key={l.id} value={l.id}>
+                        {l.title} - ({l.price} L.E)
                     </option>
                   ))}
                 </select>
               </div>
 
-              {checkLesson !== "" && (
-                <div className="w-screen h-screen fixed bg-black/50 top-0 left-0">
-                  <div className="absolute w-44 left-2/4 top-2/4 -translate-2/5 bg-white p-4 rounded-md">
-                    <div
-                      className="flex text-2xl justify-end mb-4 cursor-pointer hover:text-4xl duration-300"
-                      onClick={() => setCheckLesson("")}
-                    >
-                      <IoMdClose />
-                    </div>
-                    {allLessonFetch.map((l, i) => (
-                      <div
-                        key={i}
-                        onClick={() => {
-                          setSelectLessonId({
-                            id: l.id,
-                            name: l.title,
-                            price: l.price,
-                          });
-                          setCheckLesson("");
-                        }}
-                        className="text-lg bg-slate-200 mb-3 p-2 rounded-md hover:bg-slate-400 duration-300 cursor-pointer"
-                      >
-                        {l.title}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {selectLessonId.id && (
-                <div className="mt-4 flex gap-5 justify-between items-center">
+              {/* Step 3: Date & Submit */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-gray-500 flex items-center gap-1">
+                  <Calendar size={14} /> 3. Expiration
+                </label>
+                <div className="flex gap-2">
                   <input
                     type="date"
                     value={dateEx}
                     onChange={(e) => setDateEx(e.target.value)}
-                    className="bg-slate-200 p-2 rounded-md"
+                    className="flex-1 bg-gray-50 border border-gray-200 p-2 rounded-xl outline-none"
                   />
-                  {!loading ? (
-                    <input
-                      type="button"
-                      value="Add"
-                      disabled={!dateEx}
-                      onClick={addLesson}
-                      className={`px-10 py-2 m-2 rounded-md text-white text-sm font-semibold transition-all duration-300 cursor-pointer ${
-                        dateEx
-                          ? "bg-blue-400 hover:bg-blue-500"
-                          : "bg-gray-300 cursor-not-allowed"
-                      }`}
-                    />
-                  ) : (
-                    <input
-                      type="button"
-                      value="loading"
-                      className="bg-blue-500 px-10 py-2 m-2 rounded-md text-white text-sm font-semibold"
-                    />
-                  )}
-                  <div className="text-red-500">{err}</div>
+                  <button
+                    disabled={loading || !dateEx || !selectLessonId.id}
+                    onClick={addLesson}
+                    className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 rounded-xl disabled:bg-gray-200 transition-colors"
+                  >
+                    {loading ? <Loader2 className="animate-spin" size={20} /> : <CheckCircle2 size={20} />}
+                  </button>
                 </div>
-              )}
+              </div>
+              {err && <p className="col-span-full text-center text-xs text-red-500 font-medium">{err}</p>}
             </div>
-          </div>
+          </motion.div>
         )}
+      </AnimatePresence>
 
-        <div className="px-4 py-3 @container">
-          <div className="flex overflow-hidden rounded-xl border border-[#dde1e3] bg-white">
-            <table className="flex-1">
-              <thead>
-                <tr className="bg-white">
-                  <th className="px-4 py-3 text-left text-[#121416] w-[400px] text-sm font-medium leading-normal">
-                    Lesson Title
-                  </th>
-                  <th className="px-4 py-3 text-left text-[#121416] w-[400px] text-sm font-medium leading-normal">
-                    Price
-                  </th>
-                  <th className="px-4 py-3 text-left text-[#121416] w-[400px] text-sm font-medium leading-normal">
-                    Creation Date
-                  </th>
-                  <th className="px-4 py-3 text-left text-[#121416] w-[400px] text-sm font-medium leading-normal">
-                    Expire Date
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {allSubFetch.map((sub: any, index: number) => {
-                  const dateExpire = new Date(sub.expire);
-                  const dateCreate = new Date(sub.date);
-
-                  const formattedDateExpire = isNaN(dateExpire.getTime())
-                    ? "Invalid Date"
-                    : format(dateExpire, "MMM dd, yyyy");
-                  const formattedDateCreate = isNaN(dateCreate.getTime())
-                    ? "Invalid Date"
-                    : format(dateCreate, "MMM dd, yyyy");
-
-                  return (
-                    <tr className="border-t border-t-[#dde1e3]" key={index}>
-                      <td className="h-[72px] px-4 py-2 w-[400px] text-[#121416] text-sm font-normal leading-normal">
-                        <LessonName lessonId={sub.lesson_id} />
-                      </td>
-                      <td className="h-[72px] px-4 py-2 w-[400px] text-[#6a7681] text-sm font-normal leading-normal">
-                        {Number(sub.price)} L.E
-                      </td>
-                      <td className="h-[72px] px-4 py-2 w-[400px] text-[#6a7681] text-sm font-normal leading-normal">
-                        {formattedDateCreate}
-                      </td>
-                      <td className="h-[72px] px-4 py-2 w-[400px] text-[#6a7681] text-sm font-normal leading-normal">
-                        {formattedDateExpire}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden overflow-y-auto max-h-[400px]">
+        <table className="w-full text-left border-collapse">
+          <thead className="bg-gray-50 text-gray-500 text-[11px] uppercase tracking-wider font-bold">
+            <tr>
+              <th className="px-6 py-4">Lesson Title</th>
+              <th className="px-6 py-4">Price</th>
+              <th className="px-6 py-4">Dates (Created - Expire)</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100 text-sm">
+            {roleDet?.allLessonInSubscribe?.map((sub: any, index: number) => (
+              <tr key={index} className="hover:bg-gray-50 transition-colors group">
+                <td className="px-6 py-4 font-medium text-gray-800">
+                  {sub.lesson?.title}
+                </td>
+                <td className="px-6 py-4 text-emerald-600 font-bold">
+                  <DollarSign size={14} className="inline"/> {sub.price}
+                </td>
+                <td className="px-6 py-4 text-gray-500">
+                  <div className="flex flex-col text-[11px]">
+                    <span>Created: {format(new Date(sub.date), "dd/MM/yyyy")}</span>
+                    <span className="text-red-500">Expires: {format(new Date(sub.expire), "dd/MM/yyyy")}</span>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
-    </>
+    </div>
   );
 };
 

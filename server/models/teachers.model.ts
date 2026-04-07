@@ -15,9 +15,9 @@ class TeachersModel {
 				throw new Error('this number phone Already Exists')
 			}
 			const sql =
-				'INSERT INTO teachers (id, subject, grade_levels) values ($1, $2, $3) returning *'
+				'INSERT INTO teachers (id, subject, grade_levels, active) values ($1, $2, $3, $4) returning *'
 			//run query
-			const result = await connect.query(sql, [u.id, u.subject, u.grade_levels])
+			const result = await connect.query(sql, [u.id, u.subject, u.grade_levels, u.active])
 			//release connect
 			connect.release()
 			//return created
@@ -64,12 +64,13 @@ class TeachersModel {
 		try {
 			//open connect with DB
 			const connect = await pool.connect()
-			const sql = `UPDATE teachers SET subject=$1, grade_levels=$2,  profile_pic=$3 WHERE id=$4 RETURNING *`
+			const sql = `UPDATE teachers SET subject=$1, grade_levels=$2,  profile_pic=$3, active=$4 WHERE id=$5 RETURNING *`
 			//run query
 			const result = await connect.query(sql, [
 				u.subject,
 				u.grade_levels,
 				u.profile_pic,
+				u.active,
 				u.id,
 			])
 			//release connect

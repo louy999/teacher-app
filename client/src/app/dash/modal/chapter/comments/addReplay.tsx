@@ -35,8 +35,7 @@ const AddReplay = ({ commentId }) => {
         }
 
         setIdUser(studentPayload); // No more type errors
-      } catch (error) {
-        console.log(error);
+      } catch  {
       }
     };
     validationUserToken();
@@ -89,8 +88,7 @@ const AddReplay = ({ commentId }) => {
           });
           socket.emit("add_replay");
         }
-      } catch (error) {
-        console.log(error);
+      } catch {
       } finally {
         setIsSubmitting(false);
         setTextInput("");

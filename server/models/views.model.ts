@@ -59,7 +59,7 @@ class ViewsModel {
 	async getByLessonIdAndStudentId(
 		lesson_id: string,
 		student_id: string
-	): Promise<ViewsTypes[]> {
+	): Promise<ViewsTypes> {
 		try {
 			const connect = await pool.connect()
 			const sql = 'SELECT * from views WHERE lesson_id=($1) AND student_id=($2)'

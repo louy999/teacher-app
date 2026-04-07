@@ -62,7 +62,7 @@ routes.get('/plan/:plan', async (req: Request, res: Response, next) => {
 //get specific by lesson
 routes.get('/teacher/:teacher', async (req: Request, res: Response, next) => {
 	try {
-		const teacherSub = await teacherSubscriptionsModal.getByTeacher_id(
+		const teacherSub = await teacherSubscriptionsModal.getByTeacherId(
 			req.params.teacher as unknown as string
 		)
 		res.json({

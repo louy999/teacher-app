@@ -1,7 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import axios from "axios";
 import { motion } from "framer-motion";
 import { CheckCircle2, PlayCircle, Timer, Award, ChevronRight } from "lucide-react";
 
@@ -11,9 +10,7 @@ interface Exam {
   time: number;
 }
 
-interface Answer {
-  is_correct: boolean;
-}
+
 
 interface Props {
   exam: Exam;
@@ -21,31 +18,9 @@ interface Props {
   studentId: string;
 }
 
-const IfDoneExams: React.FC<Props> = ({ exam, lessonId, studentId }) => {
-  const [answers, setAnswers] = useState<Answer[]>([]);
-  const [loading, setLoading] = useState(true);
+const IfDoneExams: React.FC<Props> = ({ lesson, exam,  studentId ,answers}) => {
+console.log(lesson)
 
-  useEffect(() => {
-    const fetchAnswers = async () => {
-      try {
-        const res = await axios.get(
-          `${process.env.local}/answers/student/${studentId}/exam/${exam.id}`
-        );
-        setAnswers(res.data.data || []);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchAnswers();
-  }, [exam.id, studentId]);
-
-  if (loading) return (
-    <div className="h-16 w-full bg-white/10 animate-pulse rounded-2xl" />
-  );
-
-  // الحالة الأولى: الطالب لم يمتحن بعد (Show Start Button)
   if (answers.length === 0) {
     return (
       <motion.div
@@ -53,7 +28,7 @@ const IfDoneExams: React.FC<Props> = ({ exam, lessonId, studentId }) => {
         whileTap={{ scale: 0.98 }}
       >
         <Link
-          href={`/exam/${exam.id}?lessonId=${lessonId}&studentId=${studentId}`}
+          href={`/exam/${exam.id}?lessonId=${lesson.id}&studentId=${studentId}`}
           className="flex items-center justify-between p-4 bg-white/10 hover:bg-white/20 border border-white/10 rounded-2xl transition-all group"
         >
           <div className="flex items-center gap-4">
@@ -73,7 +48,6 @@ const IfDoneExams: React.FC<Props> = ({ exam, lessonId, studentId }) => {
     );
   }
 
-  // الحالة الثانية: الطالب أنهى الامتحان (Show Results)
   const correctCount = answers.filter((a) => a.is_correct).length;
   const scorePercentage = Math.round((correctCount / answers.length) * 100);
   const isExcellent = scorePercentage >= 80;

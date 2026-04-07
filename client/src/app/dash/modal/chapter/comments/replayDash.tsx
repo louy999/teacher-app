@@ -13,7 +13,6 @@ const ReplayDash = ({ commentId }) => {
   const deleteRep = async (idRep) => {
     try {
       const res = await axios.delete(`${process.env.local}/replay/${idRep}`);
-      console.log(res.data.data);
     } catch (error) {
       console.log(error);
     }

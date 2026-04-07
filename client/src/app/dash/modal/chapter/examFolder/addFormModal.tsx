@@ -1,8 +1,22 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import React, { useState } from "react";
 import axios from "axios";
-import { IoMdAddCircle, IoMdTrash } from "react-icons/io";
-import { FaCheckDouble } from "react-icons/fa";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  X, 
+  Plus, 
+  Trash2, 
+  CheckCircle2, 
+  Circle, 
+  Image as ImageIcon, 
+  Timer, 
+  FileText, 
+  MessageSquare,
+  Loader2,
+  Save,
+  Gamepad2
+} from "lucide-react";
 
 interface AddFormModalProps {
   open: boolean;
@@ -32,13 +46,9 @@ const AddFormModal: React.FC<AddFormModalProps> = ({
     answers: [""],
     correct_answer: "",
     notes: "",
-    file_url: "",
-    file_type: "",
   });
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -54,40 +64,25 @@ const AddFormModal: React.FC<AddFormModalProps> = ({
   };
 
   const handleDeleteAnswer = (i: number) => {
+    if (formData.answers.length <= 1) return;
     const updated = formData.answers.filter((_, idx) => idx !== i);
     setFormData((prev) => ({
       ...prev,
       answers: updated,
-      correct_answer:
-        prev.correct_answer === formData.answers[i] ? "" : prev.correct_answer,
+      correct_answer: prev.correct_answer === formData.answers[i] ? "" : prev.correct_answer,
     }));
-  };
-
-  const handleCorrectAnswer = (ans: string) => {
-    setFormData((prev) => ({ ...prev, correct_answer: ans }));
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) setFile(e.target.files[0]);
-  };
-
-  const uploadFile = async (): Promise<string> => {
-    if (!file) return "";
-    const form = new FormData();
-    form.append("image", file);
-    const res = await axios.post(`${process.env.img}/upload/image`, form, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-    return res.data;
   };
 
   const handleSubmit = async () => {
     try {
       setLoading(true);
-
       let uploadedFileName = "";
+      
       if (file) {
-        uploadedFileName = await uploadFile();
+        const form = new FormData();
+        form.append("image", file);
+        const res = await axios.post(`${process.env.img}/upload/image`, form);
+        uploadedFileName = res.data;
       }
 
       if (type === "exam") {
@@ -97,7 +92,7 @@ const AddFormModal: React.FC<AddFormModalProps> = ({
           lesson_id: lessonId,
         });
       } else {
-        const res = await axios.post(`${process.env.local}/qa`, {
+        await axios.post(`${process.env.local}/qa`, {
           exams_id: examId,
           question: formData.question,
           answers: formData.answers,
@@ -107,193 +102,210 @@ const AddFormModal: React.FC<AddFormModalProps> = ({
           file_url: uploadedFileName,
           file_type: uploadedFileName ? "image" : "",
         });
-        console.log(res.data.data);
       }
 
-      setFormData({
-        title: "",
-        time: "",
-        question: "",
-        answers: [""],
-        correct_answer: "",
-        notes: "",
-        file_url: "",
-        file_type: "",
-      });
+      // Reset & Close
+      setFormData({ title: "", time: "", question: "", answers: [""], correct_answer: "", notes: "" });
       setFile(null);
       setOpen(false);
       if (onCreated) onCreated();
+      fetchExams();
     } catch (err) {
-      console.error("Error saving:", err);
+      console.error("Save Error:", err);
     } finally {
       setLoading(false);
-      fetchExams();
     }
   };
 
   return (
-    <>
+    <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div
-            className="absolute inset-0 bg-black/30"
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             onClick={() => setOpen(false)}
-          ></div>
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
+          />
 
-          <div className="relative bg-white rounded-xl shadow-lg p-6 w-full max-w-lg z-10">
-            <h2 className="text-lg font-semibold mb-4">
-              {type === "exam" ? "Add New Exam" : "Add New Question"}
-            </h2>
-
-            {type === "question" && (
-              <>
-                <div className="mb-3">
-                  <label className="block text-sm text-gray-700">
-                    Question
-                  </label>
-                  <textarea
-                    name="question"
-                    value={formData.question}
-                    onChange={handleChange}
-                    className="w-full border rounded-lg p-2 mt-1"
-                    placeholder="Enter question"
-                  />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            className="relative bg-[#FBFCFE] w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-[2.5rem] shadow-2xl custom-scrollbar"
+          >
+            {/* Header */}
+            <div className="sticky top-0 bg-white/80 backdrop-blur-md px-8 py-6 border-b border-gray-100 flex justify-between items-center z-10">
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-xl text-white shadow-lg ${type === 'exam' ? 'bg-orange-500 shadow-orange-100' : 'bg-blue-600 shadow-blue-100'}`}>
+                  {type === 'exam' ? <Gamepad2 size={20} /> : <Plus size={20} />}
                 </div>
-
-                <div className="mb-3">
-                  <label className="block font-semibold mb-1">Answers:</label>
-                  <div className="space-y-2">
-                    {formData.answers.map((ans, i) => (
-                      <div
-                        key={i}
-                        className={`flex items-center justify-between w-full p-2 ${
-                          formData.correct_answer === ans
-                            ? "border-green-300 border-2"
-                            : "border"
-                        } rounded`}
-                      >
-                        <input
-                          type="text"
-                          className="w-full p-2 border rounded mr-2"
-                          value={ans}
-                          onChange={(e) =>
-                            handleAnswerChange(i, e.target.value)
-                          }
-                        />
-                        <div className="flex gap-2 items-center">
-                          {formData.correct_answer === ans ? (
-                            <div
-                              className="w-8 h-8 rounded-full border cursor-pointer flex items-center justify-center bg-green-500"
-                              onClick={() => handleCorrectAnswer(ans)}
-                            >
-                              <FaCheckDouble className="text-white" />
-                            </div>
-                          ) : (
-                            <div
-                              className="w-8 h-8 cursor-pointer bg-white rounded-full border flex items-center justify-center"
-                              onClick={() => handleCorrectAnswer(ans)}
-                            ></div>
-                          )}
-                          <IoMdTrash
-                            className="cursor-pointer text-red-500 w-6 h-6"
-                            onClick={() => handleDeleteAnswer(i)}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                    <div
-                      className="flex items-center gap-2 cursor-pointer text-blue-600 mt-2"
-                      onClick={handleAddAnswer}
-                    >
-                      <IoMdAddCircle className="w-6 h-6" /> Add Answer
-                    </div>
-                  </div>
+                <div>
+                  <h2 className="text-xl font-black text-gray-800 tracking-tight">
+                    {type === "exam" ? "Create New Assessment" : "Add New Question"}
+                  </h2>
+                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Fill in the details below</p>
                 </div>
-
-                <div className="mb-3">
-                  <label className="block text-sm text-gray-700">Notes</label>
-                  <input
-                    name="notes"
-                    value={formData.notes}
-                    onChange={handleChange}
-                    className="w-full border rounded-lg p-2 mt-1"
-                    placeholder="Optional notes"
-                  />
-                </div>
-                <div className="mb-3">
-                  <label className="block font-semibold mb-1">
-                    Time (minutes):
-                  </label>
-                  <input
-                    type="number"
-                    name="time"
-                    value={formData.time}
-                    onChange={handleChange}
-                    className="w-full p-2 border rounded"
-                  />
-                </div>
-                <div className="mb-3">
-                  <label className="block text-sm text-gray-700">
-                    Upload Image
-                  </label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="w-full border rounded-lg p-2 mt-1"
-                  />
-                </div>
-              </>
-            )}
-
-            {type === "exam" && (
-              <>
-                <div className="mb-3">
-                  <label className="block text-sm text-gray-700">Title</label>
-                  <input
-                    name="title"
-                    value={formData.title}
-                    onChange={handleChange}
-                    className="w-full border rounded-lg p-2 mt-1"
-                    placeholder="Enter exam title"
-                  />
-                </div>
-                <div className="mb-3">
-                  <label className="block text-sm text-gray-700">
-                    Time (minutes)
-                  </label>
-                  <input
-                    name="time"
-                    type="number"
-                    value={formData.time}
-                    onChange={handleChange}
-                    className="w-full border rounded-lg p-2 mt-1"
-                    placeholder="Enter exam time"
-                  />
-                </div>
-              </>
-            )}
-
-            <div className="flex justify-end gap-3">
-              <button
-                className="px-4 py-2 bg-gray-200 rounded-lg"
-                onClick={() => setOpen(false)}
-                disabled={loading}
-              >
-                Cancel
-              </button>
-              <button
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg"
-                onClick={handleSubmit}
-                disabled={loading}
-              >
-                {loading ? "Saving..." : "Save"}
+              </div>
+              <button onClick={() => setOpen(false)} className="p-2 hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-full transition-all">
+                <X size={20} />
               </button>
             </div>
-          </div>
+
+            <div className="p-8 space-y-6">
+              {type === "question" ? (
+                <>
+                  {/* Question Field */}
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-black text-gray-400 uppercase ml-2 flex items-center gap-1">
+                      <FileText size={12} /> Question Statement
+                    </label>
+                    <textarea
+                      name="question"
+                      value={formData.question}
+                      onChange={handleChange}
+                      rows={3}
+                      className="w-full bg-white border border-gray-100 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 shadow-sm transition-all font-bold text-gray-700"
+                      placeholder="What is the capital of...?"
+                    />
+                  </div>
+
+                  {/* Answers Section */}
+                  <div className="space-y-3">
+                    <label className="text-[11px] font-black text-gray-400 uppercase ml-2 flex items-center gap-1">
+                      <CheckCircle2 size={12} /> Answer Choices
+                    </label>
+                    <div className="grid gap-3">
+                      {formData.answers.map((ans, i) => (
+                        <motion.div 
+                          layout
+                          key={i}
+                          className={`flex items-center gap-3 p-2 bg-white rounded-2xl border-2 transition-all ${formData.correct_answer === ans && ans !== "" ? 'border-emerald-500 bg-emerald-50/30' : 'border-gray-50'}`}
+                        >
+                          <button
+                            onClick={() => setFormData(prev => ({ ...prev, correct_answer: ans }))}
+                            className={`p-2 rounded-xl transition-all ${formData.correct_answer === ans && ans !== "" ? 'text-emerald-600' : 'text-gray-300 hover:text-emerald-400'}`}
+                          >
+                            {formData.correct_answer === ans && ans !== "" ? <CheckCircle2 size={22} /> : <Circle size={22} />}
+                          </button>
+                          
+                          <input
+                            type="text"
+                            className="flex-1 bg-transparent border-none outline-none font-bold text-sm text-gray-700"
+                            placeholder={`Option ${i + 1}`}
+                            value={ans}
+                            onChange={(e) => handleAnswerChange(i, e.target.value)}
+                          />
+                          
+                          <button onClick={() => handleDeleteAnswer(i)} className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg">
+                            <Trash2 size={18} />
+                          </button>
+                        </motion.div>
+                      ))}
+                    </div>
+                    <button 
+                      onClick={handleAddAnswer}
+                      className="flex items-center gap-2 text-blue-600 font-bold text-xs mt-2 hover:bg-blue-50 w-fit px-4 py-2 rounded-xl transition-all"
+                    >
+                      <Plus size={16} /> Add Another Choice
+                    </button>
+                  </div>
+
+                  {/* Metadata Row */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-[11px] font-black text-gray-400 uppercase ml-2 flex items-center gap-1">
+                        <Timer size={12} /> Time (Min)
+                      </label>
+                      <input
+                        type="number"
+                        name="time"
+                        value={formData.time}
+                        onChange={handleChange}
+                        className="w-full bg-white border border-gray-100 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 shadow-sm transition-all font-bold text-gray-700"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[11px] font-black text-gray-400 uppercase ml-2 flex items-center gap-1">
+                        <ImageIcon size={12} /> Illustration
+                      </label>
+                      <label className="flex items-center gap-3 w-full bg-white border border-gray-100 p-4 rounded-2xl cursor-pointer hover:bg-gray-50 transition-all shadow-sm">
+                         <div className="bg-gray-100 p-1.5 rounded-lg"><ImageIcon size={16} className="text-gray-400" /></div>
+                         <span className="text-xs font-bold text-gray-400 line-clamp-1">{file ? file.name : "Select Image"}</span>
+                         <input type="file" accept="image/*" className="hidden" onChange={(e: any) => setFile(e.target.files?.[0])} />
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-black text-gray-400 uppercase ml-2 flex items-center gap-1">
+                      <MessageSquare size={12} /> Explanatory Notes
+                    </label>
+                    <input
+                      name="notes"
+                      value={formData.notes}
+                      onChange={handleChange}
+                      className="w-full bg-white border border-gray-100 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 shadow-sm font-bold text-gray-700"
+                      placeholder="Optional explanation for the answer..."
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Exam Fields */}
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-[11px] font-black text-gray-400 uppercase ml-2 flex items-center gap-1">
+                        <FileText size={12} /> Exam Title
+                      </label>
+                      <input
+                        name="title"
+                        value={formData.title}
+                        onChange={handleChange}
+                        className="w-full bg-white border border-gray-100 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-orange-500 shadow-sm font-bold text-gray-700"
+                        placeholder="Midterm, Final Exam..."
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[11px] font-black text-gray-400 uppercase ml-2 flex items-center gap-1">
+                        <Timer size={12} /> Duration (Minutes)
+                      </label>
+                      <input
+                        name="time"
+                        type="number"
+                        value={formData.time}
+                        onChange={handleChange}
+                        className="w-full bg-white border border-gray-100 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-orange-500 shadow-sm font-bold text-gray-700"
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="sticky bottom-0 bg-white px-8 py-6 border-t border-gray-100 flex gap-4">
+              <button
+                disabled={loading}
+                className="flex-1 py-4 bg-gray-100 text-gray-500 rounded-2xl font-bold hover:bg-gray-200 transition-all disabled:opacity-50"
+                onClick={() => setOpen(false)}
+              >
+                Discard
+              </button>
+              <button
+                disabled={loading}
+                onClick={handleSubmit}
+                className={`flex-[2] py-4 text-white rounded-2xl font-black shadow-lg transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2 ${type === 'exam' ? 'bg-orange-500 shadow-orange-100 hover:bg-orange-600' : 'bg-blue-600 shadow-blue-100 hover:bg-blue-700'}`}
+              >
+                {loading ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
+                {loading ? "Processing..." : `Create ${type === 'exam' ? 'Assessment' : 'Question'}`}
+              </button>
+            </div>
+          </motion.div>
         </div>
       )}
-    </>
+    </AnimatePresence>
   );
 };
 

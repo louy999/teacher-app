@@ -12,19 +12,20 @@ interface ExamPageProps {
   }
 }
 
-const ExamPage: React.FC<ExamPageProps> = ({ lessonId, studentId ,exams}) => {
+const ExamPage: React.FC<ExamPageProps> = ({  lesson, studentId }) => {
   
-    if (exams.length === 0) {
+  console.log(lesson)
+    if (lesson.exams.length === 0) {
       return <p className="text-indigo-200 text-xs italic">No quizzes available for this lesson yet.</p>;
     }
-
     return (
       <div className="space-y-3">
-        {exams.map((e: any) => (
+        {lesson.exams.map((e: any) => (
           <IfDoneExams
             key={e.id}
+            lesson={lesson}
+            answers={e.studentAnswer}
             exam={e}
-            lessonId={lessonId}
             studentId={studentId}
           />
         ))}

@@ -1,35 +1,32 @@
 import React from "react";
 import axios from "axios";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import PersonalDetails from "./personalDetails";
 import ViewedLessons from "./viewedLessons";
 import PaidLessons from "./paidLessons";
-import AllViewsExam from "./exam/allViewsExam";
+import AllViewsExam from "./allViewsExam";
 import SubscribeTeacher from "./subscribeTeacher";
 import WavesProfile from '../../components/waves/wavesProfile';
+import { headers } from 'next/headers'
 
 const StudentProfilePage = async ({ params }: { params: { studentId: string } }) => {
   const { studentId } = await params;
-  const cookieStore = await cookies();
-  const roleToken = cookieStore.get("dataRoleToken");
+    const headersList = await headers()
+  const userAgent = headersList.get('decoded-token')
+        const parsedData = JSON.parse(userAgent);
+console.log(parsedData)
+if(parsedData.user.role==="students"){
 
-  if (!roleToken) redirect("/login");
+  if(parsedData.user.id!==studentId) {redirect("/")}
+}
+
 
   try {
     const userResponse = await axios.get(
-      `${process.env.local}/users/${studentId}`,
-      { headers: { Authorization: roleToken.value } }
+      `${process.env.local}/m/profile/student/${studentId}/teacher/${process.env.teacherId}`,
     );
 
     const userData = userResponse.data.data;
-    if (userData.role !== "students") {
-      redirect("/");
-    }
-
-    const infoResponse = await axios.get(`${process.env.local}/students/${studentId}`);
-    const studentInfo = infoResponse.data.data;
-console.log(studentInfo)
 
     return (
       <div className="min-h-screen bg-[#F8FAFC] pb-20">
@@ -37,8 +34,8 @@ console.log(studentInfo)
         <div className="relative overflow-hidden bg-gradient-to-br from-[#6366F1] to-[#4F46E5] pt-16 pb-32 px-4 md:px-10">
           <WavesProfile />
           <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8 relative z-10">
-            <PersonalDetails roleDet={userData} studentDet={studentInfo} />
-            <SubscribeTeacher studentId={userData} dash={false} />
+            <PersonalDetails roleDet={userData.student} studentDet={userData.studentExtra} />
+            <SubscribeTeacher studentData={userData} dash={false} />
           </div>
         </div>
 

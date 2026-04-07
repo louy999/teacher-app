@@ -117,7 +117,7 @@ const AddComment: React.FC<AddCommentProps> = ({ lessonId, studentId }) => {
         <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-indigo-50">
           <Image
             fill
-            src={imageSrc || "/default-profile.png"}
+            src={imageSrc }
             alt="profile"
             className="object-cover"
           />

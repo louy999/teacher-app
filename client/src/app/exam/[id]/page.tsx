@@ -15,6 +15,7 @@ const ExamPage = () => {
   const student_id = searchParams.get("studentId");
   const lessonId = searchParams.get("lessonId");
   const examId = pathname.split("/")[2];
+console.log(searchParams);
 
   const [examData, setExamData] = useState<any[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);

@@ -4,11 +4,11 @@
 	"description": "",
 	"main": "index.js",
 	"scripts": {
-		"start": "nodemon index.ts",
+		"dev": "nodemon index.ts",
 		"mig-up": " db-migrate up",
 		"mig-down": " db-migrate reset",
-		"dev": "pm2 delete teacher; pm2 start --name teacher  'npx ts-node --transpile-only index.ts' --watch",
-		"dev:d": "pm2 delete teacher;"
+		"start": "pm2 delete teacher; pm2 start --name teacher  'npx ts-node --transpile-only index.ts' --watch",
+		"start:s": "pm2 delete teacher;"
 	},
 	"author": "",
 	"license": "ISC",

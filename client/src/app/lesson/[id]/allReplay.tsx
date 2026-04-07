@@ -1,36 +1,19 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-"use client";
-import React, { useEffect, useState, useCallback } from "react";
-import axios from "axios";
 import Image from "next/image";
-import socket from "../../lib/socket";
 import { motion, AnimatePresence } from "framer-motion";
 import { CornerDownRight, CheckCircle } from "lucide-react";
 
-const AllReplay: React.FC<AllReplayProps> = ({ commentId }) => {
-  const [replayData, setReplayData] = useState<any[]>([]);
+const AllReplay: React.FC<AllReplayProps> = ({ replies }) => {
 
-  const fetchReplay = useCallback(async () => {
-    try {
-      const res = await axios.get(`${process.env.local}/m/replay/comment/${commentId}`);
-      setReplayData(res.data.data);
-    } catch (error) { console.error(error); }
-  }, [commentId]);
 
-  useEffect(() => {
-    fetchReplay();
-    socket.on("all_replay", fetchReplay);
-    return () => { socket.off("all_replay", fetchReplay); };
-  }, [fetchReplay]);
 
-  if (replayData.length === 0) return null;
+  if (replies.length === 0) return null;
 
   return (
     <div className="mt-4 space-y-3 relative">
       <div className="absolute left-[-20px] top-0 bottom-0 w-px bg-slate-100" />
       
       <AnimatePresence>
-        {replayData.map((replay) => (
+        {replies.map((replay) => (
           <motion.div
             key={replay.id}
             initial={{ opacity: 0, x: -10 }}
@@ -43,7 +26,7 @@ const AllReplay: React.FC<AllReplayProps> = ({ commentId }) => {
               <div className="flex items-center gap-2 mb-2">
                 <div className="relative h-6 w-6 rounded-full overflow-hidden">
                    <Image 
-                    src={`${process.env.img}/image/${replay.extraData?.profile_pic || 'default.png'}`}
+                    src={`${replay.extraData?.profile_pic }`}
                     alt="Admin" fill className="object-cover"
                    />
                 </div>
@@ -62,7 +45,6 @@ const AllReplay: React.FC<AllReplayProps> = ({ commentId }) => {
 
               {replay.file_url && (
                 <div className="mt-3">
-                   {/* نفس منطق الملفات والصور في التعليق الأساسي */}
                 </div>
               )}
             </div>

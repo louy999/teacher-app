@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 import socket from "../../../lib/socket";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
+import { motion, AnimatePresence } from "framer-motion"; // تحسين الحركات
+import { User, Lock, GraduationCap, X, Loader2 } from "lucide-react"; // أيقونات احترافية
+
 const AddStudentModal = ({ modal }) => {
   const [err, setErr] = useState("");
   const [full_name, setFull_name] = useState("");
@@ -10,8 +13,12 @@ const AddStudentModal = ({ modal }) => {
   const [phone, setPhone] = useState("");
   const [stage, setStage] = useState("");
   const [loading, setLoading] = useState(false);
-  const [gradeTeacher, setGradeTeacher] = useState([]);
+
   const handleAddStudent = async () => {
+    if (!full_name || !password || !phone || !stage) {
+      setErr("Please fill all fields");
+      return;
+    }
     setLoading(true);
     try {
       const res = await axios.get(
@@ -19,7 +26,7 @@ const AddStudentModal = ({ modal }) => {
       );
 
       if (process.env.limitStudent <= res.data.data.length) {
-        setErr("limit reached for students");
+        setErr("Limit reached for students");
       } else {
         await axios.post(`${process.env.local}/m/addUser`, {
           full_name,
@@ -29,143 +36,139 @@ const AddStudentModal = ({ modal }) => {
           teacher_id: process.env.teacherId,
           stage,
         });
-
         modal(false);
         socket.emit("add_student");
       }
     } catch (error) {
-      etErr(error.response.data.message);
-      setTimeout(() => {
-        setErr("");
-      }, 5000);
+      setErr(error.response?.data?.message || "Something went wrong");
+      setTimeout(() => setErr(""), 5000);
     } finally {
       setLoading(false);
     }
   };
-  useEffect(() => {
-    const getGrade = async () => {
-      try {
-        const res = await axios.get(
-          `${process.env.local}/teachers/${process.env.teacherId}`
-        );
-        setGradeTeacher(res.data.data.grade_levels);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    getGrade();
-  }, []);
 
   return (
-    <div className="fixed top-0 left-0 flex justify-center items-center h-screen w-screen bg-black/50 z-50">
-      <div className="bg-white rounded-md text-black w-[400px]">
-        <h2 className="text-xl font-semibold text-center py-4">Add Student</h2>
-        <div>
-          <div className="text-black text-xl p-4 relative">
-            <label
-              htmlFor="fullName"
-              className="absolute top-1 text-base bg-white left-7 px-1 capitalize"
-            >
-              Full Name
-            </label>
-            <input
-              type="text"
-              onChange={(e) => setFull_name(e.target.value)}
-              value={full_name}
-              required
-              id="fullName"
-              className="border w-full p-2 rounded-md"
-            />
-          </div>
-
-          <div className="text-black text-xl p-4 relative">
-            <label
-              htmlFor="phone"
-              className="absolute -top-1 text-base bg-white left-5 px-1 capitalize"
-            >
-              Phone
-            </label>
-
-            <PhoneInput
-              country={"eg"}
-              value={phone}
-              onChange={(value) => setPhone(value)}
-              inputStyle={{
-                width: "100%",
-              }}
-            />
-          </div>
-          <div className="text-black text-xl p-4 relative">
-            <label
-              htmlFor="password"
-              className="absolute top-1 text-base bg-white left-7 px-1 capitalize"
-            >
-              Password
-            </label>
-            <input
-              type="text"
-              onChange={(e) => setPassword(e.target.value)}
-              value={password}
-              required
-              id="password"
-              className="border w-full p-2 rounded-md"
-            />
-          </div>
-          <div className="text-black text-xl p-4 relative">
-            <label
-              htmlFor="stage"
-              className="absolute top-1 text-base bg-white left-7 px-1 capitalize"
-            >
-              Stage
-            </label>
-            {/* <input
-              type="text"
-              onChange={(e) => setStage(e.target.value)}
-              value={stage}
-              required
-              id="stage"
-              className="border w-full p-2 rounded-md"
-            /> */}
-            <select
-              className="mt-2 border w-full p-2 rounded-md"
-              onChange={(e) => setStage(e.target.value)}
-              value={stage}
-            >
-              <option value="" disabled>
-                Select Grade Level
-              </option>
-              {gradeTeacher.map((grade, index) => (
-                <option key={index} value={grade}>
-                  {grade}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className=" text-center text-sm text-red-500">{err}</div>
-          {/* Buttons */}
-          <div className="flex justify-center gap-4 p-4">
-            <button
+    <AnimatePresence>
+      <div className="fixed inset-0 flex justify-center items-center h-screen w-screen bg-black/60 backdrop-blur-sm z-50 p-4">
+        {/* Modal Container */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.9, y: 20 }}
+          className="bg-white rounded-2xl shadow-2xl text-black w-full max-w-[450px] overflow-hidden"
+        >
+          {/* Header */}
+          <div className="relative bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white text-center">
+            <button 
               onClick={() => modal(false)}
-              className="bg-red-400 cursor-pointer hover:bg-red-500 duration-300 w-full text-white px-4 py-2 rounded-md"
+              className="absolute right-4 top-4 hover:bg-white/20 p-1 rounded-full transition-colors"
             >
-              Cancel
+              <X size={20} />
             </button>
-            {!loading ? (
-              <button
-                onClick={handleAddStudent}
-                className="bg-blue-400 hover:bg-blue-500 duration-300 cursor-pointer w-full text-white px-4 py-2 rounded-md"
-              >
-                Add Student
-              </button>
-            ) : (
-              <button className="bg-blue-500 duration-300 cursor-pointer w-full text-white px-4 py-2 rounded-md">
-                loading
-              </button>
-            )}
+            <h2 className="text-2xl font-bold">Add New Student</h2>
+            <p className="text-blue-100 text-sm mt-1">Register a new student to your class</p>
           </div>
-        </div>
+
+          <div className="p-6 space-y-5">
+            {/* Input Group: Full Name */}
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                <User size={16} className="text-blue-500" /> Full Name
+              </label>
+              <input
+                type="text"
+                onChange={(e) => setFull_name(e.target.value)}
+                value={full_name}
+                placeholder="Enter student name"
+                className="border border-gray-200 w-full p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+              />
+            </div>
+
+            {/* Input Group: Phone */}
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-700">Phone Number</label>
+              <PhoneInput
+                country={"eg"}
+                value={phone}
+                onChange={(value) => setPhone(value)}
+                inputStyle={{
+                  width: "100%",
+                  height: "42px",
+                  borderRadius: "8px",
+                  border: "1px solid #e5e7eb"
+                }}
+              />
+            </div>
+
+            {/* Input Group: Password */}
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                <Lock size={16} className="text-blue-500" /> Password
+              </label>
+              <input
+                type="password"
+                onChange={(e) => setPassword(e.target.value)}
+                value={password}
+                placeholder="••••••••"
+                className="border border-gray-200 w-full p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </div>
+
+            {/* Input Group: Stage */}
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                <GraduationCap size={16} className="text-blue-500" /> Student Stage
+              </label>
+              <select
+                className="border border-gray-200 w-full p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                onChange={(e) => setStage(e.target.value)}
+                value={stage}
+              >
+                <option value="" disabled>Choose Grade Level</option>
+                {process.env.grade?.split(',').map((grade, index) => (
+                  <option key={index} value={grade}>{grade}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Error Message */}
+            {err && (
+              <motion.div 
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="text-center text-sm font-medium text-red-500 bg-red-50 py-2 rounded-md"
+              >
+                {err}
+              </motion.div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => modal(false)}
+                className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={loading}
+                onClick={handleAddStudent}
+                className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all flex justify-center items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 size={18} className="animate-spin" />
+                    Adding...
+                  </>
+                ) : (
+                  "Add Student"
+                )}
+              </button>
+            </div>
+          </div>
+        </motion.div>
       </div>
-    </div>
+    </AnimatePresence>
   );
 };
 

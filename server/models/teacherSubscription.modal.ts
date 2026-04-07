@@ -58,7 +58,7 @@ class TeacherSubscriptionsModal {
 		}
 	}
 	// get by teacher_id
-	async getByTeacher_id(teacher_id: string): Promise<TeacherSubscriptions> {
+	async getByTeacherId(teacher_id: string): Promise<TeacherSubscriptions> {
 		try {
 			const connect = await pool.connect()
 			const sql = 'SELECT * from teacher_subscriptions WHERE teacher_id=($1)'

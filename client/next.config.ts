@@ -42,6 +42,7 @@ const nextConfig: NextConfig = {
     TOKEN_SECRET: process.env.TOKEN_SECRET,
     limitStudent: process.env.LIMIT_STUDENT,
     assist:  process.env.LIMIT_ASSIST,
+    grade:process.env.GRADE
   },
 };
 

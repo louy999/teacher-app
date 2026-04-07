@@ -126,6 +126,12 @@ routes.post('/auth', async (req: Request, res: Response, next) => {
 				roleData = await teachersModel.getOne(
 					user.id as unknown as unknown as string
 				)
+				if (!roleData) {
+					throw new Error('Teacher data not found')
+				}
+				if (!roleData.active){
+					throw new Error('account is not active yet.')	
+				}
 			} else {
 				throw new Error('this number not subscribe with teacher')
 			}

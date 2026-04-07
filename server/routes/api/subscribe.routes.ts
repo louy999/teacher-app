@@ -108,6 +108,24 @@ routes.get(
 		}
 	}
 )
+routes.get(
+	'/student/:studentId/teacher/:teacherId',
+	async (req: Request, res: Response, next) => {
+		try {
+			const subscribe = await subscribeModel.getByStudentIdAndTeacherId(
+				req.params.studentId as unknown as string,
+				req.params.teacherId as unknown as string
+			)
+			res.json({
+				status: 'success',
+				data: subscribe || [],
+				message: 'subscribe retrieved successfully',
+			})
+		} catch (err) {
+			next(err)
+		}
+	}
+)
 //update
 routes.patch('/', async (req: Request, res: Response, next) => {
 	try {

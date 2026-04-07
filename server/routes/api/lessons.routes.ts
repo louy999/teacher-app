@@ -29,6 +29,18 @@ routes.get('/', async (req: Request, res: Response, next) => {
 		next(err.message)
 	}
 })
+routes.get('/paid/:chapter_id', async (req: Request, res: Response, next) => {
+	try {
+		const lesson = await lessonsModel.getPaidAndChapter(req.params.chapter_id as string)
+		res.json({
+			status: 'success',
+			data: lesson,
+			message: 'users retrieved successfully',
+		})
+	} catch (err: any) {
+		next(err.message)
+	}
+})
 //get specific
 routes.get('/:id', async (req: Request, res: Response, next) => {
 	try {

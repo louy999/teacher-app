@@ -1,31 +1,57 @@
 import React from "react";
 import Image from "next/image";
+import { Phone, GraduationCap, User, ShieldCheck } from "lucide-react";
+import SubscribeTeacher from '../../../profile/[studentId]/subscribeTeacher';
 
-const InfoStudent = ({ studentDet, roleDet }) => {
+const InfoStudent = ({ roleDet }) => {
   return (
-    <div className="w-8/12 my-10">
-      <div className="header flex items-center gap-3">
+    <div className="flex flex-col md:flex-row items-center gap-8">
+      <div className="relative group">
+        <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-300"></div>
         <Image
-          src={`${process.env.img}/image/${studentDet.profile_pic}`}
+          src={roleDet?.studentExtra?.profile_pic}
           alt="student image"
-          width={200}
-          height={200}
-          className="rounded-full bg-cover"
+          width={140}
+          height={140}
+          className="relative rounded-full object-cover border-4 border-white shadow-md"
         />
-        <div className="flex flex-col justify-center">
-          <div className="text-[#121416] text-[22px] font-bold leading-tight tracking-[-0.015em]">
-            {roleDet.full_name}
-          </div>
-          <div className="text-[#6a7681] text-base font-normal leading-normal">
-            {roleDet.role}
-          </div>
-          <div className="text-[#6a7681] text-base font-normal leading-normal">
-            Stage: {studentDet.stage}
-          </div>
-          <div className="text-[#6a7681] text-base font-normal leading-normal">
-            Phone: {roleDet.phone}
+      </div>
+
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+        <div className="space-y-1">
+          <p className="text-xs text-gray-400 uppercase font-bold tracking-wider">Full Name</p>
+          <div className="flex items-center gap-2 text-gray-800 font-bold text-xl">
+            <User size={18} className="text-blue-500" />
+            {roleDet.student.full_name}
           </div>
         </div>
+
+        <div className="space-y-1">
+          <p className="text-xs text-gray-400 uppercase font-bold tracking-wider">Contact</p>
+          <div className="flex items-center gap-2 text-gray-600 font-medium">
+            <Phone size={18} className="text-emerald-500" />
+            {roleDet.student.phone}
+          </div>
+        </div>
+
+        <div className="space-y-1">
+          <p className="text-xs text-gray-400 uppercase font-bold tracking-wider">Education Stage</p>
+          <div className="flex items-center gap-2 text-gray-600 font-medium">
+            <GraduationCap size={18} className="text-amber-500" />
+            {roleDet.studentExtra.stage}
+          </div>
+        </div>
+        <div className="space-y-1">
+          <p className="text-xs text-gray-400 uppercase font-bold tracking-wider">Account Type</p>
+          <div className="flex items-center gap-2">
+            <span className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+              <ShieldCheck size={14} />
+              {roleDet.student.role}
+            </span>
+          </div>
+        </div>
+        <SubscribeTeacher studentData={roleDet} />
+
       </div>
     </div>
   );
